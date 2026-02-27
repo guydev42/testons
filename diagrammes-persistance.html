@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Comprendre les Données via les Diagrammes de Persistance</title>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #0d0f14;
+      --surface: #131720;
+      --surface2: #1a1f2e;
+      --border: #2a3050;
+      --accent: #c8a96e;
+      --accent2: #7eb8c9;
+      --accent3: #9fc87e;
+      --text: #e8e2d4;
+      --text-muted: #8a8a9a;
+      --h0: #7eb8c9;
+      --h1: #e8a06a;
+      --h2: #7ec98a;
+      --red: #c96e7e;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'EB Garamond', 'Libre Baskerville', Georgia, serif;
+      font-size: 19px;
+      line-height: 1.75;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      padding: 100px 2rem 80px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -120px; left: 50%; transform: translateX(-50%);
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(200,169,110,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .header-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.2s forwards;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      max-width: 900px;
+      margin: 0 auto 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.4s forwards;
+    }
+
+    h1 em {
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .header-subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 650px;
+      margin: 0 auto 2.5rem;
+      font-style: italic;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.6s forwards;
+    }
+
+    .header-tags {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.8s forwards;
+    }
+
+    .tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text-muted);
+      background: var(--surface);
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13, 15, 20, 0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+    }
+
+    .nav-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    nav a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 14px 18px;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    nav a:hover {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ── LAYOUT ── */
+    main {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── SECTIONS ── */
+    section {
+      padding: 80px 0 40px;
+      border-bottom: 1px solid var(--border);
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    section:last-child { border-bottom: none; }
+
+    .section-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    h2 {
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    h3 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 2.5rem 0 1rem;
+      letter-spacing: 0.01em;
+    }
+
+    h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--accent2);
+      margin: 2rem 0 0.75rem;
+      font-style: italic;
+    }
+
+    p { margin-bottom: 1.4rem; }
+
+    strong { color: var(--accent); font-weight: 600; }
+
+    em { color: var(--accent2); }
+
+    /* ── CALLOUTS ── */
+    .callout {
+      background: var(--surface2);
+      border-left: 3px solid var(--accent);
+      padding: 1.2rem 1.5rem;
+      margin: 2rem 0;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .callout.info { border-left-color: var(--accent2); }
+    .callout.warn { border-left-color: var(--red); }
+    .callout.success { border-left-color: var(--accent3); }
+
+    .callout-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .callout.info .callout-label { color: var(--accent2); }
+    .callout.warn .callout-label { color: var(--red); }
+    .callout.success .callout-label { color: var(--accent3); }
+
+    .callout p:last-child { margin-bottom: 0; }
+
+    /* ── MATH BLOCKS ── */
+    .math-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.5rem 2rem;
+      margin: 2rem 0;
+      overflow-x: auto;
+      font-size: 0.95em;
+    }
+
+    .math-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+
+    /* ── DEFINITION BOXES ── */
+    .definition {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--accent);
+      border-radius: 0 0 6px 6px;
+      padding: 1.4rem 1.8rem;
+      margin: 2rem 0;
+    }
+
+    .definition-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.8rem;
+      display: block;
+    }
+
+    .definition p:last-child { margin-bottom: 0; }
+
+    /* ── DIAGRAM VISUAL ── */
+    .diagram-container {
+      margin: 2.5rem 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    .diagram-header {
+      padding: 0.75rem 1.2rem;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .diagram-body {
+      padding: 1.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* ── SVG PERSISTENCE DIAGRAM ── */
+    svg { font-family: 'JetBrains Mono', monospace; }
+
+    /* ── STEPS ── */
+    .steps {
+      counter-reset: step;
+      list-style: none;
+      padding: 0;
+      margin: 1.5rem 0;
+    }
+
+    .steps li {
+      counter-increment: step;
+      display: flex;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+      align-items: flex-start;
+    }
+
+    .steps li::before {
+      content: counter(step);
+      flex-shrink: 0;
+      width: 32px; height: 32px;
+      background: var(--accent);
+      color: var(--bg);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 3px;
+    }
+
+    /* ── CODE BLOCKS ── */
+    pre {
+      background: #090c12;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.4rem;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      font-size: 0.82rem;
+      line-height: 1.6;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82em;
+      color: var(--accent2);
+      background: var(--surface2);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      font-size: 1em;
+      color: var(--text);
+    }
+
+    .code-kw { color: #c792ea; }
+    .code-fn { color: #82aaff; }
+    .code-str { color: #c3e88d; }
+    .code-cm { color: var(--text-muted); font-style: italic; }
+    .code-num { color: #f78c6c; }
+    .code-cl { color: var(--accent); }
+
+    /* ── COMPARISON TABLE ── */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 2rem 0;
+    }
+
+    .compare-cell {
+      background: var(--surface);
+      padding: 1.2rem 1.4rem;
+    }
+
+    .compare-cell.header {
+      background: var(--surface2);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .compare-cell p { margin: 0; font-size: 0.9rem; color: var(--text-muted); }
+    .compare-cell strong { color: var(--text); font-size: 1rem; }
+
+    /* ── LEGEND ── */
+    .legend {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .legend-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── TABLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 2rem 0;
+      font-size: 0.92rem;
+    }
+
+    th {
+      background: var(--surface2);
+      padding: 0.85rem 1.1rem;
+      text-align: left;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0.85rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      vertical-align: top;
+    }
+
+    td:first-child { color: var(--text); font-weight: 500; }
+    tr:last-child td { border-bottom: none; }
+
+    /* ── REFERENCES ── */
+    .ref-list {
+      list-style: none;
+      counter-reset: ref;
+    }
+
+    .ref-list li {
+      counter-increment: ref;
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.1rem;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      align-items: flex-start;
+    }
+
+    .ref-list li::before {
+      content: '[' counter(ref) ']';
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+
+    .ref-list a { color: var(--accent2); }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 60px 2rem;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      border-top: 1px solid var(--border);
+      font-style: italic;
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 700px) {
+      body { font-size: 17px; }
+      .compare-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 2rem; }
+    }
+
+    /* ── BACK TO TOP ── */
+    .back-top {
+      position: fixed;
+      bottom: 2rem; right: 2rem;
+      width: 44px; height: 44px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 1.2rem;
+      z-index: 200;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .back-top.show { opacity: 1; }
+
+    /* ── PULL QUOTE ── */
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 0.5rem 1.5rem;
+      margin: 2rem 0;
+      font-style: italic;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    /* ── HOMOLOGY DIAGRAM SVG ── */
+    .filtration-steps {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 1.5rem 0;
+    }
+
+    .step-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.8rem 1rem;
+      text-align: center;
+      min-width: 100px;
+      flex: 1;
+    }
+
+    .step-box .step-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+      display: block;
+    }
+
+    .step-box .step-value {
+      font-size: 0.95rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .arrow-right {
+      display: flex;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header id="top">
+    <p class="header-eyebrow">Analyse Topologique des Données · Tutoriel</p>
+    <h1>Comprendre les Données via les <em>Diagrammes de Persistance</em></h1>
+    <p class="header-subtitle">Un guide complet de l'homologie persistante — des fondements mathématiques à l'implémentation Python</p>
+    <div class="header-tags">
+      <span class="tag">Topologie Algébrique</span>
+      <span class="tag">Apprentissage Automatique</span>
+      <span class="tag">Python · Ripser · Persim</span>
+      <span class="tag">Niveau ⭐⭐⭐</span>
+    </div>
+  </header>
+
+  <!-- NAVIGATION -->
+  <nav>
+    <div class="nav-inner">
+      <a href="#motivation">Motivation</a>
+      <a href="#tda">TDA</a>
+      <a href="#filtration">Filtration</a>
+      <a href="#homologie">Homologie</a>
+      <a href="#diagramme">Diagramme</a>
+      <a href="#images">Images</a>
+      <a href="#paysages">Paysages</a>
+      <a href="#bruit">Bruit</a>
+      <a href="#python">Python</a>
+      <a href="#synthese">Synthèse</a>
+      <a href="#refs">Références</a>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ── SECTION 1 ── MOTIVATION -->
+    <section id="motivation">
+      <span class="section-number">01 — Pourquoi cela importe</span>
+      <h2>L'enjeu de la forme des données</h2>
+
+      <p>Les méthodes classiques d'analyse de données — statistiques descriptives, ACP, clustering k-means — opèrent essentiellement dans un espace <strong>métrique euclidien</strong> et cherchent des structures locales : des nuages de points, des hyperplans de séparation, des densités. Elles répondent aux questions <em>combien</em> et <em>où</em>, mais pas <em>quelle est la forme globale</em> de ces données.</p>
+
+      <p>Prenons un exemple concret : un ensemble de points échantillonnés sur un tore, une sphère, ou un nœud tridimensionnel. Les statistiques de premier ordre (moyenne, variance) seront quasi-identiques pour ces trois formes. Pourtant, un tore possède <strong>deux trous</strong>, une sphère possède <strong>une cavité</strong>, et un nœud possède des propriétés topologiques radicalement différentes. Ces propriétés — invisibles aux statistiques classiques — sont précisément ce que capture l'<strong>Analyse Topologique des Données</strong> (TDA).</p>
+
+      <blockquote>
+        "La topologie est la branche des mathématiques qui étudie les propriétés d'un espace qui sont préservées sous les déformations continues — sans déchirer ni coller."
+      </blockquote>
+
+      <p>Les <strong>diagrammes de persistance</strong> sont l'outil central de la TDA. Ils constituent une <em>empreinte topologique</em> des données : un résumé compact, stablement calculable, et théoriquement fondé de la forme globale d'un nuage de points à toutes les échelles simultanement.</p>
+
+      <div class="callout success">
+        <span class="callout-label">🎯 Objectifs de ce guide</span>
+        <p>Comprendre la construction mathématique des diagrammes de persistance, apprendre à les interpréter visuellement, maîtriser leurs variantes (images, paysages) et savoir les calculer en Python avec les bibliothèques <code>ripser</code>, <code>persim</code> et <code>scikit-tda</code>.</p>
+      </div>
+    </section>
+
+    <!-- ── SECTION 2 ── TDA -->
+    <section id="tda">
+      <span class="section-number">02 — Analyse Topologique des Données</span>
+      <h2>Les fondements de la TDA</h2>
+
+      <p>L'Analyse Topologique des Données s'appuie sur un constat puissant : <strong>la forme des données contient de l'information que les méthodes statistiques ordinaires ignorent</strong>. Elle cherche des propriétés invariantes sous les transformations continues — celles qui "ne changent pas" quand on déforme l'espace sans couper ni coller.</p>
+
+      <h3>Qu'est-ce qu'un espace topologique ?</h3>
+
+      <p>Un espace topologique est un ensemble \(X\) muni d'une collection \(\mathcal{T}\) de sous-ensembles (appelés <em>ouverts</em>) satisfaisant certains axiomes. La <strong>topologie algébrique</strong> associe à ces espaces des invariants algébriques — les <em>groupes d'homologie</em> — qui encodent leur "forme" de manière abstraite et calculable.</p>
+
+      <p>Dans le cadre des données, on travaille presque exclusivement avec des espaces métriques finis (des nuages de points) que l'on "épaissit" progressivement pour révéler leur structure globale. C'est le principe de la <strong>filtration</strong>.</p>
+
+      <h3>Les complexes simpliciaux : graphes avec des faces</h3>
+
+      <p>Un <strong>complexe simplicial</strong> est la généralisation naturelle d'un graphe aux dimensions supérieures. Là où un graphe relie des paires de points (arêtes = 1-simplexes), un complexe simplicial peut relier des triplets (triangles = 2-simplexes), des quadruplets (tétraèdres = 3-simplexes), etc.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Dimension</th>
+            <th>Notation</th>
+            <th>Description géométrique</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>0-simplexe</td>
+            <td>0</td>
+            <td>\(\sigma^0\)</td>
+            <td>Un point</td>
+          </tr>
+          <tr>
+            <td>1-simplexe</td>
+            <td>1</td>
+            <td>\(\sigma^1\)</td>
+            <td>Un segment entre 2 points</td>
+          </tr>
+          <tr>
+            <td>2-simplexe</td>
+            <td>2</td>
+            <td>\(\sigma^2\)</td>
+            <td>Un triangle plein (3 points)</td>
+          </tr>
+          <tr>
+            <td>3-simplexe</td>
+            <td>3</td>
+            <td>\(\sigma^3\)</td>
+            <td>Un tétraèdre (4 points)</td>
+          </tr>
+          <tr>
+            <td>k-simplexe</td>
+            <td>k</td>
+            <td>\(\sigma^k\)</td>
+            <td>Enveloppe convexe de k+1 points en position générale</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>Un complexe simplicial \(K\) est une collection de simplexes fermée par faces : toute face d'un simplexe de \(K\) appartient à \(K\). La structure algébrique d'un complexe simplicial est capturée par ses <strong>opérateurs bord</strong> \(\partial_k\), qui relient les k-simplexes aux (k-1)-simplexes.</p>
+
+      <h3>Le complexe de Vietoris–Rips</h3>
+
+      <p>Étant donné un nuage de points \(\{p_1, \ldots, p_n\} \subset \mathbb{R}^d\) et un seuil de distance \(\varepsilon > 0\), le <strong>complexe de Vietoris–Rips</strong> \(\text{VR}(\varepsilon)\) est défini comme :</p>
+
+      <div class="math-block">
+        <span class="math-label">Définition — Complexe de Vietoris–Rips</span>
+        \[
+          \text{VR}(\varepsilon) = \left\{ \sigma \subseteq \{p_1,\ldots,p_n\} \;\middle|\; d(p_i, p_j) \leq \varepsilon \; \forall\, p_i, p_j \in \sigma \right\}
+        \]
+      </div>
+
+      <p>Autrement dit, on connecte tous les points à distance mutuelle au plus \(\varepsilon\), et on remplit les simplexes induits. En faisant varier \(\varepsilon\) de 0 à \(+\infty\), on obtient une séquence emboîtée de complexes : c'est la <strong>filtration</strong>.</p>
+    </section>
+
+    <!-- ── SECTION 3 ── FILTRATION -->
+    <section id="filtration">
+      <span class="section-number">03 — Filtration</span>
+      <h2>La filtration : voir à toutes les échelles</h2>
+
+      <p>La <strong>filtration</strong> est le moteur de l'homologie persistante. Elle consiste à construire une séquence emboîtée de complexes simpliciaux en faisant croître progressivement un paramètre — généralement un seuil de distance \(\varepsilon\) :</p>
+
+      <div class="math-block">
+        <span class="math-label">Filtration — Définition formelle</span>
+        \[
+          \emptyset = X_{-1} \subseteq X_0 \subseteq X_1 \subseteq \cdots \subseteq X_n = X
+        \]
+        <br>
+        Chaque inclusion \(X_i \hookrightarrow X_{i+1}\) est une <em>application continue</em> qui préserve la structure topologique.
+      </div>
+
+      <p>La filtration de Vietoris–Rips est la plus courante, mais d'autres constructions existent :</p>
+
+      <div class="compare-grid">
+        <div class="compare-cell header">Construction</div>
+        <div class="compare-cell header">Paramètre</div>
+        <div class="compare-cell header">Usage typique</div>
+        <div class="compare-cell"><strong>Vietoris–Rips</strong></div>
+        <div class="compare-cell"><p>Seuil de distance \(\varepsilon\)</p></div>
+        <div class="compare-cell"><p>Nuages de points quelconques</p></div>
+        <div class="compare-cell"><strong>Čech</strong></div>
+        <div class="compare-cell"><p>Rayon des boules \(r\)</p></div>
+        <div class="compare-cell"><p>Théoriquement optimal, coûteux</p></div>
+        <div class="compare-cell"><strong>Alpha (Delaunay)</strong></div>
+        <div class="compare-cell"><p>Paramètre alpha</p></div>
+        <div class="compare-cell"><p>Points dans \(\mathbb{R}^d\), efficace</p></div>
+        <div class="compare-cell"><strong>Sublevel sets</strong></div>
+        <div class="compare-cell"><p>Valeur de la fonction \(f(x)\)</p></div>
+        <div class="compare-cell"><p>Données sur grille, images</p></div>
+        <div class="compare-cell"><strong>Witness</strong></div>
+        <div class="compare-cell"><p>Témoins \(\varepsilon\)</p></div>
+        <div class="compare-cell"><p>Grandes données, approximation</p></div>
+      </div>
+
+      <h3>Intuition géométrique</h3>
+
+      <p>Imaginez chaque point de données comme le centre d'une boule de rayon \(\varepsilon/2\) qui grossit uniformément. Dès que deux boules se touchent, on dessine une arête entre leurs centres. Dès que trois boules se touchent mutuellement, on remplit le triangle. La filtration trace l'histoire de cette croissance :</p>
+
+      <div class="filtration-steps">
+        <div class="step-box">
+          <span class="step-label">ε = 0</span>
+          <div class="step-value">Points isolés</div>
+        </div>
+        <div class="arrow-right">→</div>
+        <div class="step-box">
+          <span class="step-label">ε petit</span>
+          <div class="step-value">Premières arêtes</div>
+        </div>
+        <div class="arrow-right">→</div>
+        <div class="step-box">
+          <span class="step-label">ε moyen</span>
+          <div class="step-value">Boucles, cycles</div>
+        </div>
+        <div class="arrow-right">→</div>
+        <div class="step-box">
+          <span class="step-label">ε grand</span>
+          <div class="step-value">Tout connecté</div>
+        </div>
+      </div>
+
+      <p>À chaque étape, des <strong>caractéristiques topologiques</strong> (composantes connexes, boucles, cavités) <em>naissent</em> et <em>meurent</em>. L'homologie persistante trace précisément cet historique de naissances et de morts.</p>
+
+      <!-- SVG illustratif de filtration -->
+      <div class="diagram-container">
+        <div class="diagram-header">Fig. 1 — Illustration schématique d'une filtration (Vietoris–Rips)</div>
+        <div class="diagram-body">
+          <svg width="580" height="150" viewBox="0 0 580 150">
+            <!-- Step 1: Points -->
+            <g transform="translate(30,20)">
+              <text x="60" y="10" fill="#8a8a9a" font-size="10" text-anchor="middle">ε = 0</text>
+              <circle cx="40" cy="60" r="5" fill="#7eb8c9"/>
+              <circle cx="80" cy="40" r="5" fill="#7eb8c9"/>
+              <circle cx="90" cy="80" r="5" fill="#7eb8c9"/>
+              <circle cx="55" cy="90" r="5" fill="#7eb8c9"/>
+              <text x="60" y="130" fill="#8a8a9a" font-size="9" text-anchor="middle">4 composantes</text>
+            </g>
+            <text x="168" y="75" fill="#2a3050" font-size="22">→</text>
+            <!-- Step 2: Some edges -->
+            <g transform="translate(175,20)">
+              <text x="60" y="10" fill="#8a8a9a" font-size="10" text-anchor="middle">ε petit</text>
+              <circle cx="40" cy="60" r="18" fill="none" stroke="#2a3050" stroke-dasharray="3"/>
+              <circle cx="80" cy="40" r="18" fill="none" stroke="#2a3050" stroke-dasharray="3"/>
+              <circle cx="90" cy="80" r="18" fill="none" stroke="#2a3050" stroke-dasharray="3"/>
+              <circle cx="55" cy="90" r="18" fill="none" stroke="#2a3050" stroke-dasharray="3"/>
+              <line x1="40" y1="60" x2="80" y2="40" stroke="#c8a96e" stroke-width="1.5"/>
+              <line x1="80" y1="40" x2="90" y2="80" stroke="#c8a96e" stroke-width="1.5"/>
+              <circle cx="40" cy="60" r="5" fill="#7eb8c9"/>
+              <circle cx="80" cy="40" r="5" fill="#7eb8c9"/>
+              <circle cx="90" cy="80" r="5" fill="#7eb8c9"/>
+              <circle cx="55" cy="90" r="5" fill="#7eb8c9"/>
+              <text x="60" y="130" fill="#8a8a9a" font-size="9" text-anchor="middle">Arêtes naissent</text>
+            </g>
+            <text x="320" y="75" fill="#2a3050" font-size="22">→</text>
+            <!-- Step 3: Triangle / loop -->
+            <g transform="translate(327,20)">
+              <text x="60" y="10" fill="#8a8a9a" font-size="10" text-anchor="middle">ε moyen</text>
+              <polygon points="40,60 80,40 90,80" fill="rgba(200,169,110,0.12)" stroke="#c8a96e" stroke-width="1.5"/>
+              <line x1="40" y1="60" x2="55" y2="90" stroke="#c8a96e" stroke-width="1.5"/>
+              <line x1="55" y1="90" x2="90" y2="80" stroke="#c8a96e" stroke-width="1.5"/>
+              <circle cx="40" cy="60" r="5" fill="#7eb8c9"/>
+              <circle cx="80" cy="40" r="5" fill="#7eb8c9"/>
+              <circle cx="90" cy="80" r="5" fill="#7eb8c9"/>
+              <circle cx="55" cy="90" r="5" fill="#7eb8c9"/>
+              <text x="60" y="130" fill="#8a8a9a" font-size="9" text-anchor="middle">Triangle + boucle H1</text>
+            </g>
+            <text x="469" y="75" fill="#2a3050" font-size="22">→</text>
+            <!-- Step 4: Filled -->
+            <g transform="translate(476,20)">
+              <text x="60" y="10" fill="#8a8a9a" font-size="10" text-anchor="middle">ε grand</text>
+              <polygon points="40,60 80,40 90,80 55,90" fill="rgba(126,184,201,0.15)" stroke="#7eb8c9" stroke-width="1.5"/>
+              <polygon points="40,60 80,40 90,80" fill="rgba(200,169,110,0.2)" stroke="#c8a96e" stroke-width="1"/>
+              <circle cx="40" cy="60" r="5" fill="#7eb8c9"/>
+              <circle cx="80" cy="40" r="5" fill="#7eb8c9"/>
+              <circle cx="90" cy="80" r="5" fill="#7eb8c9"/>
+              <circle cx="55" cy="90" r="5" fill="#7eb8c9"/>
+              <text x="60" y="130" fill="#8a8a9a" font-size="9" text-anchor="middle">1 composante</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SECTION 4 ── HOMOLOGIE -->
+    <section id="homologie">
+      <span class="section-number">04 — Homologie Persistante</span>
+      <h2>L'homologie persistante en détail</h2>
+
+      <p>L'<strong>homologie</strong> est une opération mathématique qui associe à tout espace topologique une suite de groupes abéliens \(H_0, H_1, H_2, \ldots\), appelés <em>groupes d'homologie</em>. Ces groupes encodent la structure "creuse" de l'espace :</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Groupe</th>
+            <th>Dimension topologique</th>
+            <th>Ce qu'il mesure</th>
+            <th>Exemple sur un tore \(\mathbb{T}^2\)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>\(H_0\)</td>
+            <td>0</td>
+            <td>Composantes connexes</td>
+            <td>\(\mathbb{Z}\) (1 composante)</td>
+          </tr>
+          <tr>
+            <td>\(H_1\)</td>
+            <td>1</td>
+            <td>Boucles / cycles indépendants</td>
+            <td>\(\mathbb{Z}^2\) (2 cycles)</td>
+          </tr>
+          <tr>
+            <td>\(H_2\)</td>
+            <td>2</td>
+            <td>Cavités / vides tridimensionnels</td>
+            <td>\(\mathbb{Z}\) (1 cavité)</td>
+          </tr>
+          <tr>
+            <td>\(H_k\)</td>
+            <td>k</td>
+            <td>Trous de dimension k</td>
+            <td>Dépend de la forme</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>Le <strong>nombre de Betti</strong> \(\beta_k = \text{rang}(H_k)\) donne le nombre de trous de dimension k. Pour une sphère \(S^2\) : \(\beta_0 = 1\), \(\beta_1 = 0\), \(\beta_2 = 1\). Pour un tore : \(\beta_0 = 1\), \(\beta_1 = 2\), \(\beta_2 = 1\).</p>
+
+      <h3>Du statique au dynamique : la persistance</h3>
+
+      <p>L'idée fondatrice de Edelsbrunner, Letscher et Zomorodian (2002) est de ne pas calculer l'homologie d'un seul espace, mais de <strong>suivre l'évolution des classes d'homologie</strong> à travers toute la filtration. Formellement, pour une filtration \(X_0 \subseteq \cdots \subseteq X_n\), les inclusions induisent des homomorphismes entre groupes d'homologie :</p>
+
+      <div class="math-block">
+        <span class="math-label">Morphismes induits par l'inclusion</span>
+        \[
+          H_k(X_0) \xrightarrow{i_{0 \to 1}_*} H_k(X_1) \xrightarrow{i_{1 \to 2}_*} \cdots \xrightarrow{i_{n-1 \to n}_*} H_k(X_n)
+        \]
+      </div>
+
+      <p>Cette structure algébrique s'appelle un <strong>module de persistance</strong>. Par le théorème de décomposition (analogue au théorème de Gabriel pour les carquois de type A), tout module de persistance de type fini se décompose en une somme directe de modules d'intervalle :</p>
+
+      <div class="math-block">
+        <span class="math-label">Théorème de décomposition (Crawley-Boevey, 2015)</span>
+        \[
+          V \cong \bigoplus_{j} \mathbb{k}[b_j, d_j)
+        \]
+        où \(\mathbb{k}[b, d)\) est le module d'intervalle qui vaut \(\mathbb{k}\) pour \(b \leq i < d\) et 0 sinon.
+      </div>
+
+      <h3>Naissance et mort d'une classe d'homologie</h3>
+
+      <p>Une classe d'homologie \([C] \in H_k(X_p)\) est dite :</p>
+      <ul style="margin: 1rem 0 1.5rem 2rem; line-height: 2;">
+        <li><strong>née</strong> au temps \(b\) si elle apparaît pour la première fois dans \(H_k(X_b)\) (elle n'existait pas dans \(H_k(X_{b-1})\))</li>
+        <li><strong>morte</strong> au temps \(d\) si elle cesse d'être indépendante dans \(H_k(X_d)\) — c'est-à-dire si \(i_{b \to d*}([C]) = 0\) mais \(i_{b \to d-1*}([C]) \neq 0\)</li>
+        <li><strong>immortelle</strong> si \(d = +\infty\) (elle survit jusqu'à la fin de la filtration)</li>
+      </ul>
+
+      <p>La <strong>persistance</strong> d'une classe est sa durée de vie \(\text{pers}([C]) = d - b\). Les classes à forte persistance correspondent à de vrais traits géométriques, celles à faible persistance au bruit.</p>
+
+      <div class="math-block">
+        <span class="math-label">Paires de persistance</span>
+        \[
+          \text{dgm}_k(X) = \left\{ (b_j, d_j) \;\middle|\; b_j < d_j, \; [C_j] \text{ naît en } b_j \text{ et meurt en } d_j \right\} \cup \{(t, t) : t \in \mathbb{R}\}
+        \]
+        Le multiensemble contient aussi la diagonale \(\{(t,t)\}\) avec multiplicité infinie, représentant les points triviaux.
+      </div>
+
+      <div class="callout">
+        <span class="callout-label">📌 Théorème de stabilité</span>
+        <p>Si deux fonctions \(f\) et \(g\) définissant deux filtrations vérifient \(\|f - g\|_\infty \leq \varepsilon\), alors la distance bottleneck entre leurs diagrammes de persistance vérifie \(d_b(\text{dgm}(f), \text{dgm}(g)) \leq \varepsilon\). La TDA est donc <strong>robuste au bruit</strong> : de petites perturbations des données produisent de petites perturbations des diagrammes.</p>
+      </div>
+    </section>
+
+    <!-- ── SECTION 5 ── DIAGRAMME -->
+    <section id="diagramme">
+      <span class="section-number">05 — Diagramme de Persistance (Naissance–Mort)</span>
+      <h2>Le diagramme de persistance</h2>
+
+      <p>Le <strong>diagramme de persistance</strong> (ou <em>birth-death diagram</em>) est la représentation visuelle principale des paires de persistance. C'est un nuage de points dans le demi-plan \(\{(b, d) \in \mathbb{R}^2 : d \geq b\}\) :</p>
+
+      <ul style="margin: 1rem 0 1.5rem 2rem; line-height: 2.2;">
+        <li>Chaque point \((b, d)\) représente une caractéristique topologique (composante, boucle, cavité) qui naît à l'échelle \(b\) et meurt à l'échelle \(d\)</li>
+        <li>La <strong>diagonale</strong> \(d = b\) correspond à la persistance nulle — le bruit pur</li>
+        <li>La <strong>distance à la diagonale</strong> \((d - b)/\sqrt{2}\) mesure l'importance de la caractéristique</li>
+        <li>Les points <strong>immortels</strong> (\(d = +\infty\)) sont représentés par une barre horizontale en pointillés au sommet du graphe</li>
+      </ul>
+
+      <!-- SVG de diagramme de persistance -->
+      <div class="diagram-container">
+        <div class="diagram-header">Fig. 2 — Diagramme de persistance illustratif (tore bruité)</div>
+        <div class="diagram-body">
+          <svg width="420" height="380" viewBox="0 0 420 380">
+            <defs>
+              <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L9,3 z" fill="#2a3050"/>
+              </marker>
+            </defs>
+            <!-- Grid -->
+            <line x1="50" y1="320" x2="380" y2="320" stroke="#2a3050" stroke-width="1"/>
+            <line x1="50" y1="320" x2="50" y2="20" stroke="#2a3050" stroke-width="1"/>
+            <!-- Diagonal -->
+            <line x1="50" y1="320" x2="370" y2="0" stroke="#2a3050" stroke-width="1" stroke-dasharray="5,3"/>
+            <!-- Axis labels -->
+            <text x="220" y="355" fill="#8a8a9a" font-size="11" text-anchor="middle">Naissance (b)</text>
+            <text x="15" y="175" fill="#8a8a9a" font-size="11" text-anchor="middle" transform="rotate(-90 15 175)">Mort (d)</text>
+            <!-- Infinity line -->
+            <line x1="50" y1="38" x2="370" y2="38" stroke="#3a4060" stroke-dasharray="6,3" stroke-width="1"/>
+            <text x="375" y="42" fill="#8a8a9a" font-size="9">∞</text>
+            <!-- Tick marks -->
+            <text x="50" y="335" fill="#5a6080" font-size="9" text-anchor="middle">0</text>
+            <text x="160" y="335" fill="#5a6080" font-size="9" text-anchor="middle">0.3</text>
+            <text x="270" y="335" fill="#5a6080" font-size="9" text-anchor="middle">0.6</text>
+            <text x="370" y="335" fill="#5a6080" font-size="9" text-anchor="middle">1.0</text>
+            <!-- H0 points (blue) — connected components -->
+            <circle cx="50" cy="52" r="7" fill="#7eb8c9" opacity="0.9"/> <!-- immortal -->
+            <circle cx="60" cy="260" r="5" fill="#7eb8c9" opacity="0.7"/>
+            <circle cx="72" cy="290" r="4" fill="#7eb8c9" opacity="0.5"/>
+            <circle cx="65" cy="302" r="3" fill="#7eb8c9" opacity="0.4"/>
+            <circle cx="80" cy="308" r="3" fill="#7eb8c9" opacity="0.4"/>
+            <circle cx="85" cy="314" r="3" fill="#7eb8c9" opacity="0.3"/>
+            <!-- H1 points (orange) — loops -->
+            <circle cx="90" cy="80" r="8" fill="#e8a06a" opacity="0.95"/>  <!-- strong loop 1 -->
+            <circle cx="100" cy="100" r="7" fill="#e8a06a" opacity="0.9"/> <!-- strong loop 2 -->
+            <circle cx="130" cy="180" r="5" fill="#e8a06a" opacity="0.6"/>
+            <circle cx="150" cy="200" r="4" fill="#e8a06a" opacity="0.5"/>
+            <circle cx="170" cy="220" r="3" fill="#e8a06a" opacity="0.4"/>
+            <circle cx="190" cy="230" r="3" fill="#e8a06a" opacity="0.35"/>
+            <circle cx="210" cy="250" r="3" fill="#e8a06a" opacity="0.3"/>
+            <!-- H2 points (green) — cavities -->
+            <circle cx="110" cy="130" r="7" fill="#7ec98a" opacity="0.9"/>  <!-- single void -->
+            <circle cx="140" cy="210" r="3" fill="#7ec98a" opacity="0.4"/>
+            <!-- Labels -->
+            <rect x="290" y="40" width="110" height="110" rx="4" fill="rgba(26,31,46,0.95)" stroke="#2a3050"/>
+            <circle cx="305" cy="60" r="5" fill="#7eb8c9"/>
+            <text x="315" y="64" fill="#e8e2d4" font-size="10">H₀ composantes</text>
+            <circle cx="305" cy="82" r="5" fill="#e8a06a"/>
+            <text x="315" y="86" fill="#e8e2d4" font-size="10">H₁ boucles</text>
+            <circle cx="305" cy="104" r="5" fill="#7ec98a"/>
+            <text x="315" y="108" fill="#e8e2d4" font-size="10">H₂ cavités</text>
+            <text x="305" y="134" fill="#5a6080" font-size="9">Persistance ↑</text>
+            <text x="305" y="145" fill="#5a6080" font-size="9">= loin diag.</text>
+            <!-- Annotation for strong H1 -->
+            <line x1="90" y1="80" x2="85" y2="60" stroke="#e8a06a" stroke-width="0.7" stroke-dasharray="3"/>
+            <text x="20" y="58" fill="#e8a06a" font-size="9">Long. élevée</text>
+            <text x="20" y="70" fill="#e8a06a" font-size="9">= boucle réelle</text>
+            <!-- Annotation near diagonal -->
+            <text x="215" y="268" fill="#5a6080" font-size="9">Bruit</text>
+          </svg>
+        </div>
+      </div>
+
+      <h3>Lecture et interprétation</h3>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background: var(--h0)"></div><span>H₀ — Bleu : composantes connexes</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background: var(--h1)"></div><span>H₁ — Orange : boucles / cycles</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background: var(--h2)"></div><span>H₂ — Vert : cavités tridimensionnelles</span></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Axe / Élément</th><th>Signification</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Axe x (Naissance b)</td><td>Valeur de filtration à laquelle la caractéristique apparaît</td></tr>
+          <tr><td>Axe y (Mort d)</td><td>Valeur de filtration à laquelle la caractéristique disparaît</td></tr>
+          <tr><td>Diagonale (d = b)</td><td>Persistance nulle — bruit de fond</td></tr>
+          <tr><td>Distance à la diagonale</td><td>Importance de la caractéristique — plus loin = plus significatif</td></tr>
+          <tr><td>Points à d = ∞</td><td>Composante survivante (toujours \(H_0\) : connexité globale)</td></tr>
+          <tr><td>Concentration près diag.</td><td>Données bruitées sans structure topologique claire</td></tr>
+          <tr><td>Point isolé très loin diag.</td><td>Caractéristique topologique robuste (vrai trou, vraie boucle)</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ── SECTION 6 ── IMAGES DE PERSISTANCE -->
+    <section id="images">
+      <span class="section-number">06 — Images de Persistance</span>
+      <h2>Images de persistance</h2>
+
+      <p>Le diagramme de persistance est un objet mathématique précis, mais difficile à utiliser directement dans les algorithmes d'apprentissage automatique : c'est un <em>multiensemble de points dans le plan</em>, et les opérations algébriques habituelles (moyennes, distances vectorielles) n'ont pas de sens naturel sur cet espace.</p>
+
+      <p>Pour pallier cela, Adams et al. (2017) ont introduit les <strong>images de persistance</strong> : une transformation qui convertit un diagramme en une image numérique à grille fixe, utilisable directement comme vecteur de caractéristiques par n'importe quel algorithme de ML.</p>
+
+      <h3>Construction mathématique</h3>
+
+      <p>La construction se déroule en trois étapes :</p>
+
+      <ol class="steps">
+        <li>
+          <div>
+            <strong>Changement de coordonnées :</strong> On transforme chaque point \((b, d)\) du diagramme en coordonnées <em>naissance–persistance</em> \((b, p) = (b, d - b)\). Cela place tous les points dans le demi-plan supérieur \(p \geq 0\) et rend la persistance explicitement visible sur l'axe vertical.
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Lissage gaussien pondéré :</strong> On place un noyau gaussien centré en chaque point \((b_j, p_j)\), pondéré par une fonction de poids \(w(b_j, p_j)\) (souvent croissante avec la persistance pour accentuer les caractéristiques importantes) :
+            <div class="math-block" style="margin-top: 1rem;">
+              \[
+                \rho(x, y) = \sum_{j} w(b_j, p_j) \cdot \exp\!\left(-\frac{(x-b_j)^2 + (y-p_j)^2}{2\sigma^2}\right)
+              \]
+            </div>
+            Le paramètre \(\sigma\) contrôle le lissage. Une valeur trop petite donne un diagramme bruité ; trop grande, on perd la structure fine.
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Discrétisation sur grille :</strong> On intègre la densité \(\rho\) sur chaque cellule \([k, \ell]\) d'une grille \(m \times m\) :
+            <div class="math-block" style="margin-top: 1rem;">
+              \[
+                \text{PI}_{k,\ell} = \int\!\!\int_{[k,\ell]} \rho(x,y)\, dx\, dy
+              \]
+            </div>
+            Le résultat est une matrice de taille \(m \times m\) représentant la densité topologique dans l'espace naissance–persistance.
+          </div>
+        </li>
+      </ol>
+
+      <div class="callout info">
+        <span class="callout-label">📌 Propriété de stabilité</span>
+        <p>Les images de persistance sont <strong>stables</strong> : une petite perturbation du diagramme de persistance (en distance Wasserstein) entraîne une petite perturbation de l'image (en norme \(L^\infty\)). Cette propriété est essentielle pour garantir la robustesse des modèles qui les utilisent.</p>
+      </div>
+
+      <h3>Interprétation visuelle</h3>
+
+      <p>Dans l'image de persistance :</p>
+      <ul style="margin: 1rem 0 1.5rem 2rem; line-height: 2.2;">
+        <li><strong>Axe x</strong> : valeur de naissance — quand la caractéristique apparaît dans la filtration</li>
+        <li><strong>Axe y</strong> : persistance \(p = d - b\) — durée de vie de la caractéristique</li>
+        <li><strong>Intensité lumineuse</strong> : densité de caractéristiques — zones brillantes = amas de traits topologiques persistants</li>
+        <li><strong>Zone bas de l'image</strong> (petite persistance) : bruit de fond</li>
+        <li><strong>Zone haute de l'image</strong> (grande persistance) : traits topologiques structurels de la forme</li>
+      </ul>
+
+      <h3>Usages en apprentissage automatique</h3>
+
+      <p>Une fois vectorisées en une matrice \(m \times m\) aplatie, les images de persistance peuvent être utilisées comme entrée de :</p>
+      <ul style="margin: 1rem 0 1.5rem 2rem; line-height: 2.2;">
+        <li><strong>SVM</strong> (Support Vector Machines) pour la classification de formes</li>
+        <li><strong>Forêts aléatoires</strong> pour la prédiction sur données biologiques</li>
+        <li><strong>Réseaux de neurones convolutifs</strong> en traitant l'image comme une image ordinaire</li>
+        <li><strong>Détection d'anomalies</strong> en séries temporelles (périodicité, ruptures)</li>
+        <li><strong>Apprentissage profond orienté physique</strong> (Physics-Informed ML)</li>
+      </ul>
+    </section>
+
+    <!-- ── SECTION 7 ── PAYSAGES -->
+    <section id="paysages">
+      <span class="section-number">07 — Paysages de Persistance</span>
+      <h2>Paysages de persistance</h2>
+
+      <p>Les <strong>paysages de persistance</strong>, introduits par Bubenik (2015), offrent une autre vectorisation du diagramme de persistance, mais dans un espace fonctionnel plutôt que dans un espace de matrices. Leur principal avantage est d'être définis dans un <strong>espace de Hilbert</strong>, ce qui permet des opérations statistiques rigoureuses (espérance, variance, tests d'hypothèses) sur des ensembles de diagrammes.</p>
+
+      <h3>Construction des couches de paysage</h3>
+
+      <p>Pour chaque paire \((b, d)\) du diagramme, on construit une fonction triangulaire centrée au point milieu \(\frac{b+d}{2}\) :</p>
+
+      <div class="math-block">
+        <span class="math-label">Fonction de base triangulaire</span>
+        \[
+          \Lambda_{b,d}(t) = \begin{cases}
+            t - b & \text{si } t \in \left[b, \dfrac{b+d}{2}\right] \\[6pt]
+            d - t & \text{si } t \in \left[\dfrac{b+d}{2}, d\right] \\[6pt]
+            0 & \text{sinon}
+          \end{cases}
+        \]
+      </div>
+
+      <p>Les fonctions ainsi construites pour toutes les paires \((b_j, d_j)\) sont ensuite <em>ordonnées par valeurs décroissantes</em> pour chaque \(t\). La k-ième couche \(\lambda_k(t)\) est le k-ième maximum (en ordre décroissant) des fonctions triangulaires à l'abscisse \(t\) :</p>
+
+      <div class="math-block">
+        <span class="math-label">Paysage de persistance d'ordre k</span>
+        \[
+          \lambda_k(t) = \underset{j}{\text{k-max}}\; \Lambda_{b_j, d_j}(t), \quad k = 1, 2, 3, \ldots
+        \]
+      </div>
+
+      <p>Le <strong>paysage complet</strong> est l'ensemble ordonné \(\Lambda = \{\lambda_1 \geq \lambda_2 \geq \cdots\}\). On note que \(\lambda_1\) capture la caractéristique la plus forte (la plus persistante), \(\lambda_2\) la deuxième, etc.</p>
+
+      <!-- SVG illustratif de paysage -->
+      <div class="diagram-container">
+        <div class="diagram-header">Fig. 3 — Paysages de persistance \(\lambda_1, \lambda_2, \lambda_3\) (schéma illustratif)</div>
+        <div class="diagram-body">
+          <svg width="480" height="200" viewBox="0 0 480 200">
+            <!-- Axes -->
+            <line x1="40" y1="170" x2="450" y2="170" stroke="#2a3050" stroke-width="1"/>
+            <line x1="40" y1="170" x2="40" y2="10" stroke="#2a3050" stroke-width="1"/>
+            <text x="245" y="193" fill="#8a8a9a" font-size="10" text-anchor="middle">Paramètre de filtration t</text>
+            <text x="12" y="100" fill="#8a8a9a" font-size="10" text-anchor="middle" transform="rotate(-90 12 100)">λ_k(t)</text>
+            <!-- λ1 — strongest, tall triangle -->
+            <polyline points="40,170 100,170 200,60 310,170 450,170" fill="rgba(200,169,110,0.15)" stroke="#c8a96e" stroke-width="2.5"/>
+            <text x="200" y="48" fill="#c8a96e" font-size="11" text-anchor="middle">λ₁</text>
+            <!-- λ2 — second layer -->
+            <polyline points="40,170 80,170 130,115 190,170 260,170 300,130 360,170 450,170" fill="rgba(126,184,201,0.12)" stroke="#7eb8c9" stroke-width="1.8" stroke-dasharray="6,3"/>
+            <text x="300" y="118" fill="#7eb8c9" font-size="11">λ₂</text>
+            <!-- λ3 — third, small -->
+            <polyline points="40,170 70,170 100,148 140,170 230,170 260,155 290,170 390,170 410,158 440,170" fill="none" stroke="#7ec98a" stroke-width="1.3" stroke-dasharray="3,3"/>
+            <text x="410" y="145" fill="#7ec98a" font-size="11">λ₃</text>
+            <!-- Legend -->
+            <text x="55" y="20" fill="#5a6080" font-size="9">λ₁ = trait topologique le plus fort</text>
+            <text x="55" y="33" fill="#5a6080" font-size="9">λ₂ = deuxième plus fort</text>
+          </svg>
+        </div>
+      </div>
+
+      <h3>Propriétés et avantages</h3>
+
+      <table>
+        <thead>
+          <tr><th>Propriété</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Espace de Hilbert</td>
+            <td>Les paysages appartiennent à \(L^2(\mathbb{R})\) : on peut calculer des moyennes, des variances, des distances \(L^2\)</td>
+          </tr>
+          <tr>
+            <td>Stabilité</td>
+            <td>Stables par rapport à la distance bottleneck entre diagrammes</td>
+          </tr>
+          <tr>
+            <td>Statistiques</td>
+            <td>Permettent des tests statistiques rigoureux (bootstrap, tests de permutation)</td>
+          </tr>
+          <tr>
+            <td>Paysage exact</td>
+            <td>Représentation linéaire par morceaux exacte — pas d'approximation</td>
+          </tr>
+          <tr>
+            <td>Paysage approché</td>
+            <td>Discrétisation sur grille finie, plus rapide mais moins précis</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <span class="callout-label">📌 Note — Paysages vs Images</span>
+        <p>Les <strong>paysages</strong> sont plus riches mathématiquement (espace de Hilbert, statistiques exactes) mais moins intuitifs visuellement. Les <strong>images de persistance</strong> sont plus faciles à interpréter et à connecter aux architectures de deep learning classiques. Dans la pratique, on choisit selon le pipeline ML et la taille des données.</p>
+      </div>
+    </section>
+
+    <!-- ── SECTION 8 ── BRUIT -->
+    <section id="bruit">
+      <span class="section-number">08 — Bruit et Stabilité</span>
+      <h2>Impact du bruit et robustesse</h2>
+
+      <p>Une question centrale en TDA appliquée est : <strong>comment le bruit dans les données affecte-t-il les diagrammes de persistance ?</strong> La réponse théorique est rassurante — c'est l'objet du <em>théorème de stabilité</em> — mais l'impact pratique mérite d'être détaillé.</p>
+
+      <h3>Le théorème de stabilité — rappel rigoureux</h3>
+
+      <div class="definition">
+        <span class="definition-title">Théorème de Stabilité (Cohen-Steiner, Edelsbrunner, Harer, 2007)</span>
+        <p>Soient \(f, g : X \to \mathbb{R}\) deux fonctions de Morse sur un espace compact triangulable \(X\). Alors :</p>
+        <div class="math-block" style="margin: 1rem 0;">
+          \[
+            d_b\bigl(\text{dgm}(f),\, \text{dgm}(g)\bigr) \leq \|f - g\|_\infty
+          \]
+        </div>
+        <p>où \(d_b\) est la <strong>distance bottleneck</strong>, définie comme le minimum sur toutes les bijections \(\gamma : \text{dgm}(f) \to \text{dgm}(g)\) du maximum des distances \(\|\cdot\|_\infty\) entre points correspondants.</p>
+      </div>
+
+      <p>Conséquence pratique : si on perturbe chaque point de données de \(\varepsilon\) au maximum, les points du diagramme de persistance se déplacent de <em>au plus</em> \(\varepsilon\). Les points proches de la diagonale (bruit) peuvent disparaître, mais les points loin de la diagonale (vraies caractéristiques) restent stables.</p>
+
+      <h3>Effets du bruit par type de diagramme</h3>
+
+      <p>En pratique, sur des données synthétiques avec bruit additif gaussien de variance \(\sigma^2\) :</p>
+
+      <table>
+        <thead>
+          <tr><th>Niveau de bruit</th><th>Diagramme (b,d)</th><th>Image de persistance</th><th>Paysage H₁</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Faible (≤ 15%)</td>
+            <td>Traits topologiques clairement séparés de la diagonale</td>
+            <td>Taches lumineuses nettes, fond uniforme</td>
+            <td>λ₁ dominant, λ₂, λ₃ courts</td>
+          </tr>
+          <tr>
+            <td>Moyen (15–40%)</td>
+            <td>Accumulation de points près de la diagonale, traits principaux toujours visibles</td>
+            <td>Fond légèrement hétérogène, taches légèrement étalées</td>
+            <td>λ₁ moins dominant, gap avec λ₂ réduit</td>
+          </tr>
+          <tr>
+            <td>Élevé (&gt; 50%)</td>
+            <td>Diagramme "rempli", traits principaux encore détectables si forme marquée</td>
+            <td>Aspect "brumeux", taches moins nettes</td>
+            <td>Fonctions plus similaires entre elles, moins hiérarchisées</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <span class="callout-label">💡 Analogie avec la régularisation</span>
+        <p>L'introduction contrôlée de bruit dans les données TDA est analogue à la régularisation L2 en deep learning : elle peut <em>stabiliser</em> les diagrammes en réduisant la sensibilité aux variations locales et en révélant des structures robustes. De même, le filtrage des points proches de la diagonale (persistence threshold) est analogue à la troncature dans une décomposition SVD.</p>
+      </div>
+    </section>
+
+    <!-- ── SECTION 9 ── PYTHON -->
+    <section id="python">
+      <span class="section-number">09 — Implémentation Python</span>
+      <h2>Calcul avec Python</h2>
+
+      <p>L'écosystème Python pour la TDA s'est considérablement enrichi depuis 2018. Les trois bibliothèques principales sont <code>ripser</code>, <code>persim</code> et <code>scikit-tda</code>.</p>
+
+      <h3>Installation</h3>
+      <pre><code><span class="code-cm"># Installation de l'écosystème complet</span>
+pip install scikit-tda     <span class="code-cm"># Interface unifiée scikit-learn</span>
+pip install ripser          <span class="code-cm"># Homologie persistante rapide (backend C++)</span>
+pip install persim          <span class="code-cm"># Visualisation et vectorisation des diagrammes</span>
+pip install gudhi           <span class="code-cm"># Bibliothèque INRIA, plus complète</span></code></pre>
+
+      <h3>Calcul d'un diagramme de persistance</h3>
+      <pre><code><span class="code-kw">import</span> numpy <span class="code-kw">as</span> np
+<span class="code-kw">from</span> ripser <span class="code-kw">import</span> ripser
+<span class="code-kw">from</span> persim <span class="code-kw">import</span> plot_diagrams
+<span class="code-kw">import</span> matplotlib.pyplot <span class="code-kw">as</span> plt
+
+<span class="code-cm"># 1. Génération d'un tore bruité</span>
+n_points = <span class="code-num">256</span>
+t = np.random.uniform(<span class="code-num">0</span>, <span class="code-num">2</span>*np.pi, n_points)
+s = np.random.uniform(<span class="code-num">0</span>, <span class="code-num">2</span>*np.pi, n_points)
+c, a = <span class="code-num">2.0</span>, <span class="code-num">0.5</span>  <span class="code-cm"># grand et petit rayon</span>
+X = np.column_stack([
+    (c + a*np.cos(s)) * np.cos(t),
+    (c + a*np.cos(s)) * np.sin(t),
+    a * np.sin(s)
+]) + <span class="code-num">0.15</span> * np.random.randn(n_points, <span class="code-num">3</span>)
+
+<span class="code-cm"># 2. Calcul de l'homologie persistante</span>
+<span class="code-cm"># maxdim=2 pour calculer H0, H1, H2</span>
+result = <span class="code-fn">ripser</span>(X, maxdim=<span class="code-num">2</span>)
+diagrams = result[<span class="code-str">'dgms'</span>]
+<span class="code-cm"># diagrams[0] → H0 (composantes connexes)</span>
+<span class="code-cm"># diagrams[1] → H1 (boucles)</span>
+<span class="code-cm"># diagrams[2] → H2 (cavités)</span>
+
+<span class="code-cm"># 3. Visualisation</span>
+fig, ax = plt.subplots(figsize=(<span class="code-num">7</span>, <span class="code-num">7</span>))
+<span class="code-fn">plot_diagrams</span>(diagrams, ax=ax, show=<span class="code-kw">True</span>)
+ax.set_title(<span class="code-str">"Diagramme de persistance — Tore bruité"</span>)
+plt.tight_layout()</code></pre>
+
+      <h3>Génération d'une image de persistance</h3>
+      <pre><code><span class="code-kw">from</span> persim <span class="code-kw">import</span> PersistenceImager
+
+<span class="code-cm"># Initialisation de l'imageur</span>
+pimgr = <span class="code-cl">PersistenceImager</span>(
+    birth_range=(<span class="code-num">0</span>, <span class="code-num">1</span>),
+    pers_range=(<span class="code-num">0</span>, <span class="code-num">1</span>),
+    pixel_size=<span class="code-num">0.05</span>,    <span class="code-cm"># résolution de la grille (20×20)</span>
+    sigma=<span class="code-num">0.05</span>,        <span class="code-cm"># lissage gaussien</span>
+    weight=<span class="code-str">'persistence'</span>  <span class="code-cm"># pondérer par persistance</span>
+)
+
+<span class="code-cm"># Transformation du diagramme H1 en image</span>
+h1_diagram = diagrams[<span class="code-num">1</span>]
+<span class="code-cm"># Supprimer les points à mort infinie</span>
+h1_finite = h1_diagram[h1_diagram[:, <span class="code-num">1</span>] != np.inf]
+
+pimgr.fit([h1_finite])
+persistence_image = pimgr.transform([h1_finite])[<span class="code-num">0</span>]
+
+<span class="code-cm"># Affichage</span>
+plt.figure(figsize=(<span class="code-num">6</span>, <span class="code-num">6</span>))
+plt.imshow(persistence_image.T, origin=<span class="code-str">'lower'</span>, cmap=<span class="code-str">'hot'</span>, aspect=<span class="code-str">'auto'</span>)
+plt.colorbar(label=<span class="code-str">'Densité de persistance'</span>)
+plt.title(<span class="code-str">'Image de persistance H₁ — Tore'</span>)
+plt.xlabel(<span class="code-str">'Naissance (b)'</span>); plt.ylabel(<span class="code-str">'Persistance (d−b)'</span>)</code></pre>
+
+      <h3>Calcul des paysages de persistance</h3>
+      <pre><code><span class="code-kw">from</span> persim <span class="code-kw">import</span> PersLandscapeApprox
+
+<span class="code-cm"># Paysage approché sur une grille de 500 points</span>
+landscape = <span class="code-cl">PersLandscapeApprox</span>(
+    dgms=diagrams,
+    hom_deg=<span class="code-num">1</span>,           <span class="code-cm"># homologie de dimension 1 (boucles)</span>
+    num_steps=<span class="code-num">500</span>
+)
+
+<span class="code-cm"># Affichage des 5 premières couches</span>
+fig, ax = plt.subplots(figsize=(<span class="code-num">10</span>, <span class="code-num">4</span>))
+colors = [<span class="code-str">'#c8a96e'</span>, <span class="code-str">'#7eb8c9'</span>, <span class="code-str">'#7ec98a'</span>, <span class="code-str">'#c96e7e'</span>, <span class="code-str">'#9e7ec9'</span>]
+<span class="code-kw">for</span> k <span class="code-kw">in</span> <span class="code-fn">range</span>(<span class="code-fn">min</span>(<span class="code-num">5</span>, <span class="code-fn">len</span>(landscape.values))):
+    ax.plot(landscape.values[k], color=colors[k], label=<span class="code-fn">f</span><span class="code-str">'λ_{k+1}'</span>, linewidth=<span class="code-num">2</span>)
+ax.set_title(<span class="code-str">'Paysages de persistance H₁ — Tore bruité'</span>)
+ax.legend(); plt.tight_layout()</code></pre>
+
+      <h3>Résumé des bibliothèques</h3>
+      <table>
+        <thead>
+          <tr><th>Bibliothèque</th><th>Rôle</th><th>Points forts</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>ripser</td><td>Calcul de l'homologie persistante</td><td>Ultra-rapide (C++), supporte la cohomologie, la filtration sparse</td></tr>
+          <tr><td>persim</td><td>Visualisation et vectorisation</td><td>Images, paysages, distances (bottleneck, Wasserstein), kernels</td></tr>
+          <tr><td>scikit-tda</td><td>Interface unifiée scikit-learn</td><td>Pipeline ML complet, transformers compatibles sklearn</td></tr>
+          <tr><td>GUDHI</td><td>Suite TDA complète (INRIA)</td><td>Complexes de Čech, alpha, Nerve ; très complet ; Python+C++</td></tr>
+          <tr><td>giotto-tda</td><td>TDA pour ML supervisé</td><td>Intégration TensorFlow/PyTorch, API scikit-learn étendue</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ── SECTION 10 ── SYNTHESE -->
+    <section id="synthese">
+      <span class="section-number">10 — Synthèse</span>
+      <h2>Points clés à retenir</h2>
+
+      <div class="callout success">
+        <span class="callout-label">✅ L'essentiel</span>
+        <p><strong>L'homologie persistante</strong> capture la forme globale des données à toutes les échelles simultanément, révélant des structures (connexité, boucles, cavités) invisibles aux méthodes statistiques classiques.</p>
+      </div>
+
+      <p>Un résumé structuré du pipeline TDA :</p>
+
+      <ol class="steps">
+        <li><strong>Données brutes</strong> → nuage de points dans \(\mathbb{R}^d\), matrice de distance, ou fonction sur un domaine</li>
+        <li><strong>Filtration</strong> → séquence emboîtée de complexes simpliciaux (Vietoris–Rips le plus souvent), paramétrée par un seuil \(\varepsilon\) croissant</li>
+        <li><strong>Homologie persistante</strong> → suivi des groupes d'homologie \(H_0, H_1, H_2, \ldots\) à travers la filtration, par réduction de matrice bord</li>
+        <li><strong>Diagramme de persistance</strong> → multiensemble de paires (naissance, mort) — empreinte topologique de la forme</li>
+        <li><strong>Vectorisation</strong> → images de persistance ou paysages de persistance pour l'intégration en ML</li>
+        <li><strong>Modèle</strong> → SVM, forêt aléatoire, réseau de neurones exploitant les vecteurs topologiques</li>
+      </ol>
+
+      <table>
+        <thead>
+          <tr><th>Objet</th><th>Espace mathématique</th><th>Avantages</th><th>Limites</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Diagramme de persistance</td>
+            <td>Espace de multiensembles (métrique bottleneck)</td>
+            <td>Information topologique exacte, stable</td>
+            <td>Difficile à utiliser directement en ML</td>
+          </tr>
+          <tr>
+            <td>Image de persistance</td>
+            <td>\(\mathbb{R}^{m \times m}\)</td>
+            <td>Vecteur fixe, compatible CNN et SVM</td>
+            <td>Perte d'information lors de la discrétisation</td>
+          </tr>
+          <tr>
+            <td>Paysage de persistance</td>
+            <td>\(L^2(\mathbb{R})\) (Hilbert)</td>
+            <td>Statistiques rigoureuses, stabilité</td>
+            <td>Plus coûteux en mémoire pour beaucoup de couches</td>
+          </tr>
+          <tr>
+            <td>Barcode</td>
+            <td>Intervalle de \(\mathbb{R}\)</td>
+            <td>Représentation alternative intuitive</td>
+            <td>Moins adapté aux comparaisons multi-diagrammes</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ── SECTION 11 ── RÉFÉRENCES -->
+    <section id="refs">
+      <span class="section-number">11 — Références</span>
+      <h2>Références</h2>
+
+      <ol class="ref-list">
+        <li>H. Edelsbrunner, D. Letscher, A. Zomorodian, <em>Topological Persistence and Simplification</em>, Discrete &amp; Computational Geometry, 2002. Article fondateur de l'homologie persistante.</li>
+        <li>H. Edelsbrunner &amp; J. Harer, <em>Computational Topology: An Introduction</em>, AMS, 2010. Référence textuelle complète.</li>
+        <li>G. Carlsson, <em>Topology and Data</em>, Bulletin of the AMS 46(2), 2009. Vision générale de la TDA.</li>
+        <li>R. Ghrist, <em>Barcodes: The Persistent Topology of Data</em>, Bull. Amer. Math. Soc. 45, 2008. <a href="https://www2.math.upenn.edu/~ghrist/preprints/barcodes.pdf">PDF disponible en ligne</a>.</li>
+        <li>D.S. Cohen-Steiner, H. Edelsbrunner, J. Harer, <em>Stability of Persistence Diagrams</em>, Discrete &amp; Computational Geometry, 2007. Théorème de stabilité.</li>
+        <li>P. Bubenik, <em>Statistical Topological Data Analysis using Persistence Landscapes</em>, JMLR 16(1), 2015. Paysages de persistance.</li>
+        <li>H. Adams et al., <em>Persistence Images: A Stable Vector Representation of Persistent Homology</em>, JMLR 18(8), 2017. Images de persistance.</li>
+        <li>F. Chazal &amp; B. Michel, <em>An Introduction to Topological Data Analysis: Fundamental and Practical Aspects for Data Scientists</em>, Front. Artif. Intell., 2021. <a href="https://geometrica.saclay.inria.fr/team/Fred.Chazal/papers/cm-itda-17/SurveySFdSOct2017.pdf">Préprint disponible</a>.</li>
+        <li>U. Fugacci et al., <em>Persistent Homology: A Step-by-Step Introduction</em>, STAG 2016.</li>
+        <li>B. Coskunuzer &amp; C. G. Akçora, <em>Topological Methods in Machine Learning</em>, arXiv:2409.02901, 2024. État de l'art récent sur TDA + ML.</li>
+        <li>U.J. Kemme &amp; C.A. Agyingi, <em>Persistent Homology: A Pedagogical Introduction with Biological Applications</em>, arXiv:2505.06583, 2025.</li>
+        <li>S. Oudot, <em>Persistence Theory: From Quiver Representations to Data Analysis</em>, AMS Mathematical Surveys 209, 2015. Traitement algébrique avancé.</li>
+        <li>Documentation : <a href="https://ripser.scikit-tda.org">Ripser.py</a>, <a href="https://persim.scikit-tda.org">Persim</a>, <a href="https://docs.scikit-tda.org">Scikit-TDA 1.1.1</a>, <a href="https://gudhi.inria.fr">GUDHI</a>.</li>
+        <li>P.R. Nicolas, <em>Understanding Data Through Persistence Diagrams</em>, Hands-on Geometric Deep Learning (Substack), décembre 2025. Article source de ce guide.</li>
+      </ol>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Rédigé en français pour GitHub Pages · Basé sur les travaux de Patrick R. Nicolas et la littérature académique TDA</p>
+    <p style="margin-top: 0.5rem;">Edelsbrunner · Carlsson · Ghrist · Bubenik · Adams · Chazal</p>
+  </footer>
+
+  <a href="#top" class="back-top" id="backTop" title="Haut de page">↑</a>
+
+  <script>
+    // Intersection Observer for section reveal
+    const sections = document.querySelectorAll('section');
+    const observer = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      { threshold: 0.07 }
+    );
+    sections.forEach(s => observer.observe(s));
+
+    // Back to top button
+    const btn = document.getElementById('backTop');
+    window.addEventListener('scroll', () => {
+      btn.classList.toggle('show', window.scrollY > 400);
+    });
+
+    // Active nav highlighting
+    const navLinks = document.querySelectorAll('nav a');
+    const sectionMap = {};
+    sections.forEach(s => { if (s.id) sectionMap[s.id] = s; });
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(s => {
+        if (window.scrollY >= s.offsetTop - 120) current = s.id;
+      });
+      navLinks.forEach(a => {
+        a.style.color = a.getAttribute('href') === `#${current}` ? 'var(--accent)' : '';
+        a.style.borderBottomColor = a.getAttribute('href') === `#${current}` ? 'var(--accent)' : '';
+      });
+    });
+  </script>
+</body>
+</html>
