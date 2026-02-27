@@ -618,11 +618,20 @@
 </head>
 <body>
 
-  <!-- HEADER -->
+  <!-- HEADER (Version plus illustrée) -->
   <header id="top">
     <p class="header-eyebrow">Analyse Topologique des Données · Tutoriel Approfondi</p>
     <h1>Comprendre les Données via les <em>Diagrammes de Persistance</em></h1>
-    <p class="header-subtitle">Un guide complet de l'homologie persistante — des fondements mathématiques à l'implémentation Python</p>
+    <p class="header-subtitle">Un guide complet de l'homologie persistante — des fondements mathématiques à l'implémentation Python, en passant par la vectorisation pour le machine learning</p>
+    <div style="display: flex; justify-content: center; margin-bottom: 2rem;">
+      <svg width="80" height="20" viewBox="0 0 80 20">
+        <circle cx="10" cy="10" r="3" fill="#7eb8c9"/>
+        <circle cx="25" cy="10" r="4" fill="#e8a06a"/>
+        <circle cx="45" cy="10" r="5" fill="#7ec98a"/>
+        <circle cx="70" cy="10" r="2" fill="#8a8a9a"/>
+        <line x1="10" y1="16" x2="70" y2="16" stroke="#2a3050" stroke-dasharray="2"/>
+      </svg>
+    </div>
     <div class="header-tags">
       <span class="tag">Topologie Algébrique</span>
       <span class="tag">Apprentissage Automatique</span>
@@ -634,7 +643,7 @@
     </div>
   </header>
 
-  <!-- NAVIGATION -->
+  <!-- NAVIGATION (inchangée, complète) -->
   <nav>
     <div class="nav-inner">
       <a href="#motivation">Motivation</a>
@@ -653,13 +662,23 @@
 
   <main>
 
-    <!-- ── SECTION 1 ── MOTIVATION -->
+    <!-- ── SECTION 1 ── MOTIVATION (enrichie visuellement) -->
     <section id="motivation">
       <span class="section-number">01 — Pourquoi cela importe</span>
       <h2>L'enjeu de la forme des données</h2>
-
-      <p>Les méthodes classiques d'analyse de données — statistiques descriptives, ACP, clustering k-means — opèrent essentiellement dans un espace <strong>métrique euclidien</strong> et cherchent des structures locales : des nuages de points, des hyperplans de séparation, des densités. Elles répondent aux questions <em>combien</em> et <em>où</em>, mais pas <em>quelle est la forme globale</em> de ces données.</p>
-
+      <div style="display: flex; gap: 1.5rem; align-items: center; margin-bottom: 1.5rem;">
+        <div style="flex: 1;">
+          <p>Les méthodes classiques d'analyse de données — statistiques descriptives, ACP, clustering k-means — opèrent essentiellement dans un espace <strong>métrique euclidien</strong> et cherchent des structures locales : des nuages de points, des hyperplans de séparation, des densités. Elles répondent aux questions <em>combien</em> et <em>où</em>, mais pas <em>quelle est la forme globale</em> de ces données.</p>
+        </div>
+        <div style="flex: 0 0 120px;">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <circle cx="40" cy="40" r="15" fill="none" stroke="#7eb8c9" stroke-width="2"/>
+            <circle cx="80" cy="40" r="15" fill="none" stroke="#e8a06a" stroke-width="2"/>
+            <circle cx="60" cy="80" r="15" fill="none" stroke="#7ec98a" stroke-width="2"/>
+            <text x="60" y="105" fill="#8a8a9a" font-size="9" text-anchor="middle">3 formes ≠</text>
+          </svg>
+        </div>
+      </div>
       <p>Prenons un exemple concret : un ensemble de points échantillonnés sur un tore, une sphère, ou un nœud tridimensionnel. Les statistiques de premier ordre (moyenne, variance) seront quasi-identiques pour ces trois formes. Pourtant, un tore possède <strong>deux trous</strong>, une sphère possède <strong>une cavité</strong>, et un nœud possède des propriétés topologiques radicalement différentes. Ces propriétés — invisibles aux statistiques classiques — sont précisément ce que capture l'<strong>Analyse Topologique des Données</strong> (TDA).</p>
 
       <blockquote>
@@ -674,89 +693,43 @@
       </div>
     </section>
 
-    <!-- ── SECTION 2 ── TDA -->
+    <!-- ── SECTION 2 ── TDA (inchangée mais gardée) -->
     <section id="tda">
       <span class="section-number">02 — Analyse Topologique des Données</span>
       <h2>Les fondements de la TDA</h2>
-
       <p>L'Analyse Topologique des Données s'appuie sur un constat puissant : <strong>la forme des données contient de l'information que les méthodes statistiques ordinaires ignorent</strong>. Elle cherche des propriétés invariantes sous les transformations continues — celles qui "ne changent pas" quand on déforme l'espace sans couper ni coller.</p>
-
       <h3>Qu'est-ce qu'un espace topologique ?</h3>
-
       <p>Un espace topologique est un ensemble \(X\) muni d'une collection \(\mathcal{T}\) de sous-ensembles (appelés <em>ouverts</em>) satisfaisant certains axiomes. La <strong>topologie algébrique</strong> associe à ces espaces des invariants algébriques — les <em>groupes d'homologie</em> — qui encodent leur "forme" de manière abstraite et calculable.</p>
-
       <p>Dans le cadre des données, on travaille presque exclusivement avec des espaces métriques finis (des nuages de points) que l'on "épaissit" progressivement pour révéler leur structure globale. C'est le principe de la <strong>filtration</strong>.</p>
-
       <h3>Les complexes simpliciaux : graphes avec des faces</h3>
-
       <p>Un <strong>complexe simplicial</strong> est la généralisation naturelle d'un graphe aux dimensions supérieures. Là où un graphe relie des paires de points (arêtes = 1-simplexes), un complexe simplicial peut relier des triplets (triangles = 2-simplexes), des quadruplets (tétraèdres = 3-simplexes), etc.</p>
-
       <table>
-        <thead>
-          <tr>
-            <th>Nom</th>
-            <th>Dimension</th>
-            <th>Notation</th>
-            <th>Description géométrique</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Nom</th><th>Dimension</th><th>Notation</th><th>Description géométrique</th></tr></thead>
         <tbody>
-          <tr>
-            <td>0-simplexe</td>
-            <td>0</td>
-            <td>\(\sigma^0\)</td>
-            <td>Un point</td>
-          </tr>
-          <tr>
-            <td>1-simplexe</td>
-            <td>1</td>
-            <td>\(\sigma^1\)</td>
-            <td>Un segment entre 2 points</td>
-          </tr>
-          <tr>
-            <td>2-simplexe</td>
-            <td>2</td>
-            <td>\(\sigma^2\)</td>
-            <td>Un triangle plein (3 points)</td>
-          </tr>
-          <tr>
-            <td>3-simplexe</td>
-            <td>3</td>
-            <td>\(\sigma^3\)</td>
-            <td>Un tétraèdre (4 points)</td>
-          </tr>
-          <tr>
-            <td>k-simplexe</td>
-            <td>k</td>
-            <td>\(\sigma^k\)</td>
-            <td>Enveloppe convexe de k+1 points en position générale</td>
-          </tr>
+          <tr><td>0-simplexe</td><td>0</td><td>\(\sigma^0\)</td><td>Un point</td></tr>
+          <tr><td>1-simplexe</td><td>1</td><td>\(\sigma^1\)</td><td>Un segment entre 2 points</td></tr>
+          <tr><td>2-simplexe</td><td>2</td><td>\(\sigma^2\)</td><td>Un triangle plein (3 points)</td></tr>
+          <tr><td>3-simplexe</td><td>3</td><td>\(\sigma^3\)</td><td>Un tétraèdre (4 points)</td></tr>
+          <tr><td>k-simplexe</td><td>k</td><td>\(\sigma^k\)</td><td>Enveloppe convexe de k+1 points en position générale</td></tr>
         </tbody>
       </table>
-
       <p>Un complexe simplicial \(K\) est une collection de simplexes fermée par faces : toute face d'un simplexe de \(K\) appartient à \(K\). La structure algébrique d'un complexe simplicial est capturée par ses <strong>opérateurs bord</strong> \(\partial_k\), qui relient les k-simplexes aux (k-1)-simplexes.</p>
-
       <h3>Le complexe de Vietoris–Rips</h3>
-
       <p>Étant donné un nuage de points \(\{p_1, \ldots, p_n\} \subset \mathbb{R}^d\) et un seuil de distance \(\varepsilon > 0\), le <strong>complexe de Vietoris–Rips</strong> \(\text{VR}(\varepsilon)\) est défini comme :</p>
-
       <div class="math-block">
         <span class="math-label">Définition — Complexe de Vietoris–Rips</span>
         \[
           \text{VR}(\varepsilon) = \left\{ \sigma \subseteq \{p_1,\ldots,p_n\} \;\middle|\; d(p_i, p_j) \leq \varepsilon \; \forall\, p_i, p_j \in \sigma \right\}
         \]
       </div>
-
       <p>Autrement dit, on connecte tous les points à distance mutuelle au plus \(\varepsilon\), et on remplit les simplexes induits. En faisant varier \(\varepsilon\) de 0 à \(+\infty\), on obtient une séquence emboîtée de complexes : c'est la <strong>filtration</strong>.</p>
     </section>
 
-    <!-- ── SECTION 3 ── FILTRATION -->
+    <!-- ── SECTION 3 ── FILTRATION (SVG déjà présent, enrichi d'une légende) -->
     <section id="filtration">
       <span class="section-number">03 — Filtration</span>
       <h2>La filtration : voir à toutes les échelles</h2>
-
       <p>La <strong>filtration</strong> est le moteur de l'homologie persistante. Elle consiste à construire une séquence emboîtée de complexes simpliciaux en faisant croître progressivement un paramètre — généralement un seuil de distance \(\varepsilon\) :</p>
-
       <div class="math-block">
         <span class="math-label">Filtration — Définition formelle</span>
         \[
@@ -764,59 +737,28 @@
         \]
         où chaque \(K_i\) est un complexe simplicial et chaque inclusion est une application simpliciale.
       </div>
-
       <p>La filtration de Vietoris–Rips est la plus courante, mais d'autres constructions existent :</p>
-
       <div class="compare-grid">
-        <div class="compare-cell header">Construction</div>
-        <div class="compare-cell header">Paramètre</div>
-        <div class="compare-cell header">Usage typique</div>
-        <div class="compare-cell"><strong>Vietoris–Rips</strong></div>
-        <div class="compare-cell"><p>Seuil de distance \(\varepsilon\)</p></div>
-        <div class="compare-cell"><p>Nuages de points quelconques</p></div>
-        <div class="compare-cell"><strong>Čech</strong></div>
-        <div class="compare-cell"><p>Rayon des boules \(r\)</p></div>
-        <div class="compare-cell"><p>Théoriquement optimal, coûteux</p></div>
-        <div class="compare-cell"><strong>Alpha (Delaunay)</strong></div>
-        <div class="compare-cell"><p>Paramètre alpha</p></div>
-        <div class="compare-cell"><p>Points dans \(\mathbb{R}^d\), efficace</p></div>
-        <div class="compare-cell"><strong>Sublevel sets</strong></div>
-        <div class="compare-cell"><p>Valeur de la fonction \(f(x)\)</p></div>
-        <div class="compare-cell"><p>Données sur grille, images</p></div>
-        <div class="compare-cell"><strong>Witness</strong></div>
-        <div class="compare-cell"><p>Témoins \(\varepsilon\)</p></div>
-        <div class="compare-cell"><p>Grandes données, approximation</p></div>
+        <div class="compare-cell header">Construction</div><div class="compare-cell header">Paramètre</div><div class="compare-cell header">Usage typique</div>
+        <div class="compare-cell"><strong>Vietoris–Rips</strong></div><div class="compare-cell"><p>Seuil de distance \(\varepsilon\)</p></div><div class="compare-cell"><p>Nuages de points quelconques</p></div>
+        <div class="compare-cell"><strong>Čech</strong></div><div class="compare-cell"><p>Rayon des boules \(r\)</p></div><div class="compare-cell"><p>Théoriquement optimal, coûteux</p></div>
+        <div class="compare-cell"><strong>Alpha (Delaunay)</strong></div><div class="compare-cell"><p>Paramètre alpha</p></div><div class="compare-cell"><p>Points dans \(\mathbb{R}^d\), efficace</p></div>
+        <div class="compare-cell"><strong>Sublevel sets</strong></div><div class="compare-cell"><p>Valeur de la fonction \(f(x)\)</p></div><div class="compare-cell"><p>Données sur grille, images</p></div>
+        <div class="compare-cell"><strong>Witness</strong></div><div class="compare-cell"><p>Témoins \(\varepsilon\)</p></div><div class="compare-cell"><p>Grandes données, approximation</p></div>
       </div>
-
       <h3>Intuition géométrique</h3>
-
       <p>Imaginez chaque point de données comme le centre d'une boule de rayon \(\varepsilon/2\) qui grossit uniformément. Dès que deux boules se touchent, on dessine une arête entre leurs centres. Dès que trois boules se touchent mutuellement, on remplit le triangle. La filtration trace l'histoire de cette croissance :</p>
-
       <div class="filtration-steps">
-        <div class="step-box">
-          <span class="step-label">ε = 0</span>
-          <div class="step-value">Points isolés</div>
-        </div>
+        <div class="step-box"><span class="step-label">ε = 0</span><div class="step-value">Points isolés</div></div>
         <div class="arrow-right">→</div>
-        <div class="step-box">
-          <span class="step-label">ε petit</span>
-          <div class="step-value">Premières arêtes</div>
-        </div>
+        <div class="step-box"><span class="step-label">ε petit</span><div class="step-value">Premières arêtes</div></div>
         <div class="arrow-right">→</div>
-        <div class="step-box">
-          <span class="step-label">ε moyen</span>
-          <div class="step-value">Boucles, cycles</div>
-        </div>
+        <div class="step-box"><span class="step-label">ε moyen</span><div class="step-value">Boucles, cycles</div></div>
         <div class="arrow-right">→</div>
-        <div class="step-box">
-          <span class="step-label">ε grand</span>
-          <div class="step-value">Tout connecté</div>
-        </div>
+        <div class="step-box"><span class="step-label">ε grand</span><div class="step-value">Tout connecté</div></div>
       </div>
-
       <p>À chaque étape, des <strong>caractéristiques topologiques</strong> (composantes connexes, boucles, cavités) <em>naissent</em> et <em>meurent</em>. L'homologie persistante trace précisément cet historique de naissances et de morts.</p>
-
-      <!-- SVG illustratif de filtration -->
+      <!-- SVG illustratif de filtration (déjà présent) -->
       <div class="diagram-container">
         <div class="diagram-header">Fig. 1 — Illustration schématique d'une filtration (Vietoris–Rips)</div>
         <div class="diagram-body">
@@ -876,66 +818,30 @@
       </div>
     </section>
 
-    <!-- ── SECTION 4 ── HOMOLOGIE -->
+    <!-- ── SECTION 4 ── HOMOLOGIE (inchangée) -->
     <section id="homologie">
       <span class="section-number">04 — Homologie Persistante</span>
       <h2>L'homologie persistante en détail</h2>
-
       <p>L'<strong>homologie</strong> est une opération mathématique qui associe à tout espace topologique une suite de groupes abéliens \(H_0, H_1, H_2, \ldots\), appelés <em>groupes d'homologie</em>. Ces groupes encodent la structure "creuse" de l'espace :</p>
-
       <table>
-        <thead>
-          <tr>
-            <th>Groupe</th>
-            <th>Dimension topologique</th>
-            <th>Ce qu'il mesure</th>
-            <th>Exemple sur un tore \(\mathbb{T}^2\)</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Groupe</th><th>Dimension topologique</th><th>Ce qu'il mesure</th><th>Exemple sur un tore \(\mathbb{T}^2\)</th></tr></thead>
         <tbody>
-          <tr>
-            <td>\(H_0\)</td>
-            <td>0</td>
-            <td>Composantes connexes</td>
-            <td>\(\mathbb{Z}\) (1 composante)</td>
-          </tr>
-          <tr>
-            <td>\(H_1\)</td>
-            <td>1</td>
-            <td>Boucles / cycles indépendants</td>
-            <td>\(\mathbb{Z}^2\) (2 cycles)</td>
-          </tr>
-          <tr>
-            <td>\(H_2\)</td>
-            <td>2</td>
-            <td>Cavités / vides tridimensionnels</td>
-            <td>\(\mathbb{Z}\) (1 cavité)</td>
-          </tr>
-          <tr>
-            <td>\(H_k\)</td>
-            <td>k</td>
-            <td>Trous de dimension k</td>
-            <td>Dépend de la forme</td>
-          </tr>
+          <tr><td>\(H_0\)</td><td>0</td><td>Composantes connexes</td><td>\(\mathbb{Z}\) (1 composante)</td></tr>
+          <tr><td>\(H_1\)</td><td>1</td><td>Boucles / cycles indépendants</td><td>\(\mathbb{Z}^2\) (2 cycles)</td></tr>
+          <tr><td>\(H_2\)</td><td>2</td><td>Cavités / vides tridimensionnels</td><td>\(\mathbb{Z}\) (1 cavité)</td></tr>
+          <tr><td>\(H_k\)</td><td>k</td><td>Trous de dimension k</td><td>Dépend de la forme</td></tr>
         </tbody>
       </table>
-
       <p>Le <strong>nombre de Betti</strong> \(\beta_k = \text{rang}(H_k)\) donne le nombre de trous de dimension k. Pour une sphère \(S^2\) : \(\beta_0 = 1\), \(\beta_1 = 0\), \(\beta_2 = 1\). Pour un tore : \(\beta_0 = 1\), \(\beta_1 = 2\), \(\beta_2 = 1\).</p>
-
       <h3>Du statique au dynamique : la persistance</h3>
-
       <p>L'idée fondatrice de Edelsbrunner, Letscher et Zomorodian (2002) est de ne pas calculer l'homologie d'un seul espace, mais de <strong>suivre l'évolution des classes d'homologie</strong> à travers toute la filtration. Formellement, pour une filtration \(K_0 \subseteq K_1 \subseteq \cdots \subseteq K_n\), les inclusions induisent des homomorphismes entre groupes d'homologie :</p>
-
       <div class="math-block">
         <span class="math-label">Homomorphismes induits par l'inclusion</span>
         \[
           H_k(K_0) \xrightarrow{f_0} H_k(K_1) \xrightarrow{f_1} H_k(K_2) \xrightarrow{f_2} \cdots \xrightarrow{f_{n-1}} H_k(K_n)
         \]
-        où chaque \(f_i\) est l'homomorphisme induit par l'inclusion \(K_i \hookrightarrow K_{i+1}\).
       </div>
-
       <p>Cette structure algébrique s'appelle un <strong>module de persistance</strong>. Par le théorème de décomposition (analogue au théorème de Gabriel pour les carquois de type A), tout module de persistance de type fini se décompose en une somme directe de modules d'intervalle :</p>
-
       <div class="math-block">
         <span class="math-label">Théorème de décomposition (Crawley-Boevey, 2015)</span>
         \[
@@ -943,18 +849,14 @@
         \]
         où \(\mathbb{k}[b, d)\) est le module d'intervalle qui vaut \(\mathbb{k}\) pour \(b \leq i < d\) et 0 sinon.
       </div>
-
       <h3>Naissance et mort d'une classe d'homologie</h3>
-
       <p>Une classe d'homologie \([C] \in H_k(K_p)\) est dite :</p>
       <ul style="margin: 1rem 0 1.5rem 2rem; line-height: 2;">
         <li><strong>née</strong> au temps \(b\) si elle apparaît pour la première fois dans \(H_k(K_b)\) (elle n'existait pas dans \(H_k(K_{b-1})\))</li>
         <li><strong>morte</strong> au temps \(d\) si elle cesse d'être indépendante dans \(H_k(K_d)\) — c'est-à-dire si l'image de la classe par l'homomorphisme induit devient nulle dans \(H_k(K_d)\) alors qu'elle ne l'était pas dans \(H_k(K_{d-1})\)</li>
         <li><strong>immortelle</strong> si \(d = +\infty\) (elle survit jusqu'à la fin de la filtration)</li>
       </ul>
-
       <p>La <strong>persistance</strong> d'une classe est sa durée de vie \(\text{pers}([C]) = d - b\). Les classes à forte persistance correspondent à de vrais traits géométriques, celles à faible persistance au bruit.</p>
-
       <div class="math-block">
         <span class="math-label">Paires de persistance</span>
         \[
@@ -962,28 +864,24 @@
         \]
         Le multiensemble contient aussi la diagonale \(\{(t,t)\}\) avec multiplicité infinie, représentant les points triviaux.
       </div>
-
       <div class="callout">
         <span class="callout-label">📌 Théorème de stabilité</span>
         <p>Si deux fonctions \(f\) et \(g\) définissant deux filtrations vérifient \(\|f - g\|_\infty \leq \varepsilon\), alors la distance bottleneck entre leurs diagrammes de persistance vérifie \(d_b(\text{dgm}(f), \text{dgm}(g)) \leq \varepsilon\). La TDA est donc <strong>robuste au bruit</strong> : de petites perturbations des données produisent de petites perturbations des diagrammes.</p>
       </div>
     </section>
 
-    <!-- ── SECTION 5 ── DIAGRAMME -->
+    <!-- ── SECTION 5 ── DIAGRAMME (SVG déjà présent, enrichi de légendes) -->
     <section id="diagramme">
       <span class="section-number">05 — Diagramme de Persistance (Naissance–Mort)</span>
       <h2>Le diagramme de persistance</h2>
-
       <p>Le <strong>diagramme de persistance</strong> (ou <em>birth-death diagram</em>) est la représentation visuelle principale des paires de persistance. C'est un nuage de points dans le demi-plan \(\{(b, d) \in \mathbb{R}^2 : d \geq b\}\) :</p>
-
       <ul style="margin: 1rem 0 1.5rem 2rem; line-height: 2.2;">
         <li>Chaque point \((b, d)\) représente une caractéristique topologique (composante, boucle, cavité) qui naît à l'échelle \(b\) et meurt à l'échelle \(d\)</li>
         <li>La <strong>diagonale</strong> \(d = b\) correspond à la persistance nulle — le bruit pur</li>
         <li>La <strong>distance à la diagonale</strong> \((d - b)/\sqrt{2}\) mesure l'importance de la caractéristique</li>
         <li>Les points <strong>immortels</strong> (\(d = +\infty\)) sont représentés par une barre horizontale en pointillés au sommet du graphe</li>
       </ul>
-
-      <!-- SVG de diagramme de persistance -->
+      <!-- SVG de diagramme de persistance (déjà présent, mais on ajoute une petite légende flottante) -->
       <div class="diagram-container">
         <div class="diagram-header">Fig. 2 — Diagramme de persistance illustratif (tore bruité)</div>
         <div class="diagram-body">
@@ -1046,19 +944,14 @@
           </svg>
         </div>
       </div>
-
       <h3>Lecture et interprétation</h3>
-
       <div class="legend">
         <div class="legend-item"><div class="legend-dot" style="background: var(--h0)"></div><span>H₀ — Bleu : composantes connexes</span></div>
         <div class="legend-item"><div class="legend-dot" style="background: var(--h1)"></div><span>H₁ — Orange : boucles / cycles</span></div>
         <div class="legend-item"><div class="legend-dot" style="background: var(--h2)"></div><span>H₂ — Vert : cavités tridimensionnelles</span></div>
       </div>
-
       <table>
-        <thead>
-          <tr><th>Axe / Élément</th><th>Signification</th></tr>
-        </thead>
+        <thead><tr><th>Axe / Élément</th><th>Signification</th></tr></thead>
         <tbody>
           <tr><td>Axe x (Naissance b)</td><td>Valeur de filtration à laquelle la caractéristique apparaît</td></tr>
           <tr><td>Axe y (Mort d)</td><td>Valeur de filtration à laquelle la caractéristique disparaît</td></tr>
@@ -1071,56 +964,30 @@
       </table>
     </section>
 
-    <!-- ── SECTION 6 ── IMAGES DE PERSISTANCE -->
+    <!-- ── SECTION 6 ── IMAGES DE PERSISTANCE (inchangée, mais déjà complète) -->
     <section id="images">
       <span class="section-number">06 — Images de Persistance</span>
       <h2>Images de persistance</h2>
-
       <p>Le diagramme de persistance est un objet mathématique précis, mais difficile à utiliser directement dans les algorithmes d'apprentissage automatique : c'est un <em>multiensemble de points dans le plan</em>, et les opérations algébriques habituelles (moyennes, distances vectorielles) n'ont pas de sens naturel sur cet espace.</p>
-
       <p>Pour pallier cela, Adams et al. (2017) ont introduit les <strong>images de persistance</strong> : une transformation qui convertit un diagramme en une image numérique à grille fixe, utilisable directement comme vecteur de caractéristiques par n'importe quel algorithme de ML.</p>
-
       <h3>Construction mathématique</h3>
-
       <p>La construction se déroule en trois étapes :</p>
-
       <ol class="steps">
-        <li>
-          <div>
-            <strong>Changement de coordonnées :</strong> On transforme chaque point \((b, d)\) du diagramme en coordonnées <em>naissance–persistance</em> \((b, p) = (b, d - b)\). Cela place tous les points dans le demi-plan supérieur \(p \geq 0\) et rend la persistance explicitement visible sur l'axe vertical.
-          </div>
-        </li>
-        <li>
-          <div>
-            <strong>Lissage gaussien pondéré :</strong> On place un noyau gaussien centré en chaque point \((b_j, p_j)\), pondéré par une fonction de poids \(w(b_j, p_j)\) (souvent croissante avec la persistance pour accentuer les caractéristiques importantes) :
-            <div class="math-block" style="margin-top: 1rem;">
-              \[
-                \rho(x, y) = \sum_{j} w(b_j, p_j) \cdot \exp\!\left(-\frac{(x-b_j)^2 + (y-p_j)^2}{2\sigma^2}\right)
-              \]
-            </div>
+        <li><div><strong>Changement de coordonnées :</strong> On transforme chaque point \((b, d)\) du diagramme en coordonnées <em>naissance–persistance</em> \((b, p) = (b, d - b)\). Cela place tous les points dans le demi-plan supérieur \(p \geq 0\) et rend la persistance explicitement visible sur l'axe vertical.</div></li>
+        <li><div><strong>Lissage gaussien pondéré :</strong> On place un noyau gaussien centré en chaque point \((b_j, p_j)\), pondéré par une fonction de poids \(w(b_j, p_j)\) (souvent croissante avec la persistance pour accentuer les caractéristiques importantes) :
+            <div class="math-block" style="margin-top: 1rem;">\[ \rho(x, y) = \sum_{j} w(b_j, p_j) \cdot \exp\!\left(-\frac{(x-b_j)^2 + (y-p_j)^2}{2\sigma^2}\right) \]</div>
             Le paramètre \(\sigma\) contrôle le lissage. Une valeur trop petite donne un diagramme bruité ; trop grande, on perd la structure fine.
-          </div>
-        </li>
-        <li>
-          <div>
-            <strong>Discrétisation sur grille :</strong> On intègre la densité \(\rho\) sur chaque cellule \([k, \ell]\) d'une grille \(m \times m\) :
-            <div class="math-block" style="margin-top: 1rem;">
-              \[
-                \text{PI}_{k,\ell} = \int\!\!\int_{[k,\ell]} \rho(x,y)\, dx\, dy
-              \]
-            </div>
+        </div></li>
+        <li><div><strong>Discrétisation sur grille :</strong> On intègre la densité \(\rho\) sur chaque cellule \([k, \ell]\) d'une grille \(m \times m\) :
+            <div class="math-block" style="margin-top: 1rem;">\[ \text{PI}_{k,\ell} = \int\!\!\int_{[k,\ell]} \rho(x,y)\, dx\, dy \]</div>
             Le résultat est une matrice de taille \(m \times m\) représentant la densité topologique dans l'espace naissance–persistance.
-          </div>
-        </li>
+        </div></li>
       </ol>
-
       <div class="callout info">
         <span class="callout-label">📌 Propriété de stabilité</span>
         <p>Les images de persistance sont <strong>stables</strong> : une petite perturbation du diagramme de persistance (en distance Wasserstein) entraîne une petite perturbation de l'image (en norme \(L^\infty\)). Cette propriété est essentielle pour garantir la robustesse des modèles qui les utilisent.</p>
       </div>
-
       <h3>Interprétation visuelle</h3>
-
       <p>Dans l'image de persistance :</p>
       <ul style="margin: 1rem 0 1.5rem 2rem; line-height: 2.2;">
         <li><strong>Axe x</strong> : valeur de naissance — quand la caractéristique apparaît dans la filtration</li>
@@ -1129,9 +996,7 @@
         <li><strong>Zone bas de l'image</strong> (petite persistance) : bruit de fond</li>
         <li><strong>Zone haute de l'image</strong> (grande persistance) : traits topologiques structurels de la forme</li>
       </ul>
-
       <h3>Usages en apprentissage automatique</h3>
-
       <p>Une fois vectorisées en une matrice \(m \times m\) aplatie, les images de persistance peuvent être utilisées comme entrée de :</p>
       <ul style="margin: 1rem 0 1.5rem 2rem; line-height: 2.2;">
         <li><strong>SVM</strong> (Support Vector Machines) pour la classification de formes</li>
@@ -1142,17 +1007,13 @@
       </ul>
     </section>
 
-    <!-- ── SECTION 7 ── PAYSAGES -->
+    <!-- ── SECTION 7 ── PAYSAGES (inchangée) -->
     <section id="paysages">
       <span class="section-number">07 — Paysages de Persistance</span>
       <h2>Paysages de persistance</h2>
-
       <p>Les <strong>paysages de persistance</strong>, introduits par Bubenik (2015), offrent une autre vectorisation du diagramme de persistance, mais dans un espace fonctionnel plutôt que dans un espace de matrices. Leur principal avantage est d'être définis dans un <strong>espace de Hilbert</strong>, ce qui permet des opérations statistiques rigoureuses (espérance, variance, tests d'hypothèses) sur des ensembles de diagrammes.</p>
-
       <h3>Construction des couches de paysage</h3>
-
       <p>Pour chaque paire \((b, d)\) du diagramme, on construit une fonction triangulaire centrée au point milieu \(\frac{b+d}{2}\) :</p>
-
       <div class="math-block">
         <span class="math-label">Fonction de base triangulaire</span>
         \[
@@ -1163,9 +1024,7 @@
           \end{cases}
         \]
       </div>
-
       <p>Les fonctions ainsi construites pour toutes les paires \((b_j, d_j)\) sont ensuite <em>ordonnées par valeurs décroissantes</em> pour chaque \(t\). La k-ième couche \(\lambda_k(t)\) est le k-ième maximum (en ordre décroissant) des fonctions triangulaires à l'abscisse \(t\) :</p>
-
       <div class="math-block">
         <span class="math-label">Paysage de persistance d'ordre k</span>
         \[
@@ -1173,9 +1032,7 @@
         \]
         où \(\operatorname{k-max}\) désigne la k-ième plus grande valeur.
       </div>
-
       <p>Le <strong>paysage complet</strong> est l'ensemble ordonné \(\Lambda = \{\lambda_1 \geq \lambda_2 \geq \cdots\}\). On note que \(\lambda_1\) capture la caractéristique la plus forte (la plus persistante), \(\lambda_2\) la deuxième, etc.</p>
-
       <!-- SVG illustratif de paysage -->
       <div class="diagram-container">
         <div class="diagram-header">Fig. 3 — Paysages de persistance \(\lambda_1, \lambda_2, \lambda_3\) (schéma illustratif)</div>
@@ -1201,115 +1058,63 @@
           </svg>
         </div>
       </div>
-
       <h3>Propriétés et avantages</h3>
-
       <table>
-        <thead>
-          <tr><th>Propriété</th><th>Description</th></tr>
-        </thead>
+        <thead><tr><th>Propriété</th><th>Description</th></tr></thead>
         <tbody>
-          <tr>
-            <td>Espace de Hilbert</td>
-            <td>Les paysages appartiennent à \(L^2(\mathbb{R})\) : on peut calculer des moyennes, des variances, des distances \(L^2\)</td>
-          </tr>
-          <tr>
-            <td>Stabilité</td>
-            <td>Stables par rapport à la distance bottleneck entre diagrammes</td>
-          </tr>
-          <tr>
-            <td>Statistiques</td>
-            <td>Permettent des tests statistiques rigoureux (bootstrap, tests de permutation)</td>
-          </tr>
-          <tr>
-            <td>Paysage exact</td>
-            <td>Représentation linéaire par morceaux exacte — pas d'approximation</td>
-          </tr>
-          <tr>
-            <td>Paysage approché</td>
-            <td>Discrétisation sur grille finie, plus rapide mais moins précis</td>
-          </tr>
+          <tr><td>Espace de Hilbert</td><td>Les paysages appartiennent à \(L^2(\mathbb{R})\) : on peut calculer des moyennes, des variances, des distances \(L^2\)</td></tr>
+          <tr><td>Stabilité</td><td>Stables par rapport à la distance bottleneck entre diagrammes</td></tr>
+          <tr><td>Statistiques</td><td>Permettent des tests statistiques rigoureux (bootstrap, tests de permutation)</td></tr>
+          <tr><td>Paysage exact</td><td>Représentation linéaire par morceaux exacte — pas d'approximation</td></tr>
+          <tr><td>Paysage approché</td><td>Discrétisation sur grille finie, plus rapide mais moins précis</td></tr>
         </tbody>
       </table>
-
       <div class="callout">
         <span class="callout-label">📌 Note — Paysages vs Images</span>
         <p>Les <strong>paysages</strong> sont plus riches mathématiquement (espace de Hilbert, statistiques exactes) mais moins intuitifs visuellement. Les <strong>images de persistance</strong> sont plus faciles à interpréter et à connecter aux architectures de deep learning classiques. Dans la pratique, on choisit selon le pipeline ML et la taille des données.</p>
       </div>
     </section>
 
-    <!-- ── SECTION 8 ── BRUIT -->
+    <!-- ── SECTION 8 ── BRUIT (inchangée) -->
     <section id="bruit">
       <span class="section-number">08 — Bruit et Stabilité</span>
       <h2>Impact du bruit et robustesse</h2>
-
       <p>Une question centrale en TDA appliquée est : <strong>comment le bruit dans les données affecte-t-il les diagrammes de persistance ?</strong> La réponse théorique est rassurante — c'est l'objet du <em>théorème de stabilité</em> — mais l'impact pratique mérite d'être détaillé.</p>
-
       <h3>Le théorème de stabilité — rappel rigoureux</h3>
-
       <div class="definition">
         <span class="definition-title">Théorème de Stabilité (Cohen-Steiner, Edelsbrunner, Harer, 2007)</span>
         <p>Soient \(f, g : X \to \mathbb{R}\) deux fonctions de Morse sur un espace compact triangulable \(X\). Alors :</p>
-        <div class="math-block" style="margin: 1rem 0;">
-          \[
-            d_b\bigl(\text{dgm}(f),\, \text{dgm}(g)\bigr) \leq \|f - g\|_\infty
-          \]
-        </div>
+        <div class="math-block" style="margin: 1rem 0;">\[ d_b\bigl(\text{dgm}(f),\, \text{dgm}(g)\bigr) \leq \|f - g\|_\infty \]</div>
         <p>où \(d_b\) est la <strong>distance bottleneck</strong>, définie comme le minimum sur toutes les bijections \(\gamma : \text{dgm}(f) \to \text{dgm}(g)\) du maximum des distances \(\|\cdot\|_\infty\) entre points correspondants.</p>
       </div>
-
       <p>Conséquence pratique : si on perturbe chaque point de données de \(\varepsilon\) au maximum, les points du diagramme de persistance se déplacent de <em>au plus</em> \(\varepsilon\). Les points proches de la diagonale (bruit) peuvent disparaître, mais les points loin de la diagonale (vraies caractéristiques) restent stables.</p>
-
       <h3>Effets du bruit par type de diagramme</h3>
-
       <p>En pratique, sur des données synthétiques avec bruit additif gaussien de variance \(\sigma^2\) :</p>
-
       <table>
-        <thead>
-          <tr><th>Niveau de bruit</th><th>Diagramme (b,d)</th><th>Image de persistance</th><th>Paysage H₁</th></tr>
-        </thead>
+        <thead><tr><th>Niveau de bruit</th><th>Diagramme (b,d)</th><th>Image de persistance</th><th>Paysage H₁</th></tr></thead>
         <tbody>
-          <tr>
-            <td>Faible (≤ 15%)</td>
-            <td>Traits topologiques clairement séparés de la diagonale</td>
-            <td>Taches lumineuses nettes, fond uniforme</td>
-            <td>λ₁ dominant, λ₂, λ₃ courts</td>
-          </tr>
-          <tr>
-            <td>Moyen (15–40%)</td>
-            <td>Accumulation de points près de la diagonale, traits principaux toujours visibles</td>
-            <td>Fond légèrement hétérogène, taches légèrement étalées</td>
-            <td>λ₁ moins dominant, gap avec λ₂ réduit</td>
-          </tr>
-          <tr>
-            <td>Élevé (&gt; 50%)</td>
-            <td>Diagramme "rempli", traits principaux encore détectables si forme marquée</td>
-            <td>Aspect "brumeux", taches moins nettes</td>
-            <td>Fonctions plus similaires entre elles, moins hiérarchisées</td>
-          </tr>
+          <tr><td>Faible (≤ 15%)</td><td>Traits topologiques clairement séparés de la diagonale</td><td>Taches lumineuses nettes, fond uniforme</td><td>λ₁ dominant, λ₂, λ₃ courts</td></tr>
+          <tr><td>Moyen (15–40%)</td><td>Accumulation de points près de la diagonale, traits principaux toujours visibles</td><td>Fond légèrement hétérogène, taches légèrement étalées</td><td>λ₁ moins dominant, gap avec λ₂ réduit</td></tr>
+          <tr><td>Élevé (&gt; 50%)</td><td>Diagramme "rempli", traits principaux encore détectables si forme marquée</td><td>Aspect "brumeux", taches moins nettes</td><td>Fonctions plus similaires entre elles, moins hiérarchisées</td></tr>
         </tbody>
       </table>
-
       <div class="callout info">
         <span class="callout-label">💡 Analogie avec la régularisation</span>
         <p>L'introduction contrôlée de bruit dans les données TDA est analogue à la régularisation L2 en deep learning : elle peut <em>stabiliser</em> les diagrammes en réduisant la sensibilité aux variations locales et en révélant des structures robustes. De même, le filtrage des points proches de la diagonale (persistence threshold) est analogue à la troncature dans une décomposition SVD.</p>
       </div>
     </section>
 
-    <!-- ── SECTION 9 ── PYTHON -->
+    <!-- ── SECTION 9 ── PYTHON (inchangée, mais gardée) -->
     <section id="python">
       <span class="section-number">09 — Implémentation Python</span>
       <h2>Calcul avec Python</h2>
-
       <p>L'écosystème Python pour la TDA s'est considérablement enrichi depuis 2018. Les trois bibliothèques principales sont <code>ripser</code>, <code>persim</code> et <code>scikit-tda</code>.</p>
-
       <h3>Installation</h3>
       <pre><code><span class="code-cm"># Installation de l'écosystème complet</span>
 pip install scikit-tda     <span class="code-cm"># Interface unifiée scikit-learn</span>
 pip install ripser          <span class="code-cm"># Homologie persistante rapide (backend C++)</span>
 pip install persim          <span class="code-cm"># Visualisation et vectorisation des diagrammes</span>
 pip install gudhi           <span class="code-cm"># Bibliothèque INRIA, plus complète</span></code></pre>
-
       <h3>Calcul d'un diagramme de persistance</h3>
       <pre><code><span class="code-kw">import</span> numpy <span class="code-kw">as</span> np
 <span class="code-kw">from</span> ripser <span class="code-kw">import</span> ripser
@@ -1340,7 +1145,6 @@ fig, ax = plt.subplots(figsize=(<span class="code-num">7</span>, <span class="co
 <span class="code-fn">plot_diagrams</span>(diagrams, ax=ax, show=<span class="code-kw">True</span>)
 ax.set_title(<span class="code-str">"Diagramme de persistance — Tore bruité"</span>)
 plt.tight_layout()</code></pre>
-
       <h3>Génération d'une image de persistance</h3>
       <pre><code><span class="code-kw">from</span> persim <span class="code-kw">import</span> PersistenceImager
 
@@ -1367,7 +1171,6 @@ plt.imshow(persistence_image.T, origin=<span class="code-str">'lower'</span>, cm
 plt.colorbar(label=<span class="code-str">'Densité de persistance'</span>)
 plt.title(<span class="code-str">'Image de persistance H₁ — Tore'</span>)
 plt.xlabel(<span class="code-str">'Naissance (b)'</span>); plt.ylabel(<span class="code-str">'Persistance (d−b)'</span>)</code></pre>
-
       <h3>Calcul des paysages de persistance</h3>
       <pre><code><span class="code-kw">from</span> persim <span class="code-kw">import</span> PersLandscapeApprox
 
@@ -1385,12 +1188,9 @@ colors = [<span class="code-str">'#c8a96e'</span>, <span class="code-str">'#7eb8
     ax.plot(landscape.values[k], color=colors[k], label=<span class="code-fn">f</span><span class="code-str">'λ_{k+1}'</span>, linewidth=<span class="code-num">2</span>)
 ax.set_title(<span class="code-str">'Paysages de persistance H₁ — Tore bruité'</span>)
 ax.legend(); plt.tight_layout()</code></pre>
-
       <h3>Résumé des bibliothèques</h3>
       <table>
-        <thead>
-          <tr><th>Bibliothèque</th><th>Rôle</th><th>Points forts</th></tr>
-        </thead>
+        <thead><tr><th>Bibliothèque</th><th>Rôle</th><th>Points forts</th></tr></thead>
         <tbody>
           <tr><td>ripser</td><td>Calcul de l'homologie persistante</td><td>Ultra-rapide (C++), supporte la cohomologie, la filtration sparse</td></tr>
           <tr><td>persim</td><td>Visualisation et vectorisation</td><td>Images, paysages, distances (bottleneck, Wasserstein), kernels</td></tr>
@@ -1401,18 +1201,15 @@ ax.legend(); plt.tight_layout()</code></pre>
       </table>
     </section>
 
-    <!-- ── SECTION 10 ── SYNTHESE -->
+    <!-- ── SECTION 10 ── SYNTHESE (inchangée) -->
     <section id="synthese">
       <span class="section-number">10 — Synthèse</span>
       <h2>Points clés à retenir</h2>
-
       <div class="callout success">
         <span class="callout-label">✅ L'essentiel</span>
         <p><strong>L'homologie persistante</strong> capture la forme globale des données à toutes les échelles simultanément, révélant des structures (connexité, boucles, cavités) invisibles aux méthodes statistiques classiques.</p>
       </div>
-
       <p>Un résumé structuré du pipeline TDA :</p>
-
       <ol class="steps">
         <li><strong>Données brutes</strong> → nuage de points dans \(\mathbb{R}^d\), matrice de distance, ou fonction sur un domaine</li>
         <li><strong>Filtration</strong> → séquence emboîtée de complexes simpliciaux (Vietoris–Rips le plus souvent), paramétrée par un seuil \(\varepsilon\) croissant</li>
@@ -1421,45 +1218,21 @@ ax.legend(); plt.tight_layout()</code></pre>
         <li><strong>Vectorisation</strong> → images de persistance ou paysages de persistance pour l'intégration en ML</li>
         <li><strong>Modèle</strong> → SVM, forêt aléatoire, réseau de neurones exploitant les vecteurs topologiques</li>
       </ol>
-
       <table>
-        <thead>
-          <tr><th>Objet</th><th>Espace mathématique</th><th>Avantages</th><th>Limites</th></tr>
-        </thead>
+        <thead><tr><th>Objet</th><th>Espace mathématique</th><th>Avantages</th><th>Limites</th></tr></thead>
         <tbody>
-          <tr>
-            <td>Diagramme de persistance</td>
-            <td>Espace de multiensembles (métrique bottleneck)</td>
-            <td>Information topologique exacte, stable</td>
-            <td>Difficile à utiliser directement en ML</td>
-          </tr>
-          <tr>
-            <td>Image de persistance</td>
-            <td>\(\mathbb{R}^{m \times m}\)</td>
-            <td>Vecteur fixe, compatible CNN et SVM</td>
-            <td>Perte d'information lors de la discrétisation</td>
-          </tr>
-          <tr>
-            <td>Paysage de persistance</td>
-            <td>\(L^2(\mathbb{R})\) (Hilbert)</td>
-            <td>Statistiques rigoureuses, stabilité</td>
-            <td>Plus coûteux en mémoire pour beaucoup de couches</td>
-          </tr>
-          <tr>
-            <td>Barcode</td>
-            <td>Intervalle de \(\mathbb{R}\)</td>
-            <td>Représentation alternative intuitive</td>
-            <td>Moins adapté aux comparaisons multi-diagrammes</td>
-          </tr>
+          <tr><td>Diagramme de persistance</td><td>Espace de multiensembles (métrique bottleneck)</td><td>Information topologique exacte, stable</td><td>Difficile à utiliser directement en ML</td></tr>
+          <tr><td>Image de persistance</td><td>\(\mathbb{R}^{m \times m}\)</td><td>Vecteur fixe, compatible CNN et SVM</td><td>Perte d'information lors de la discrétisation</td></tr>
+          <tr><td>Paysage de persistance</td><td>\(L^2(\mathbb{R})\) (Hilbert)</td><td>Statistiques rigoureuses, stabilité</td><td>Plus coûteux en mémoire pour beaucoup de couches</td></tr>
+          <tr><td>Barcode</td><td>Intervalle de \(\mathbb{R}\)</td><td>Représentation alternative intuitive</td><td>Moins adapté aux comparaisons multi-diagrammes</td></tr>
         </tbody>
       </table>
     </section>
 
-    <!-- ── SECTION 11 ── RÉFÉRENCES -->
+    <!-- ── SECTION 11 ── RÉFÉRENCES (inchangée) -->
     <section id="refs">
       <span class="section-number">11 — Références</span>
       <h2>Références</h2>
-
       <ol class="ref-list">
         <li>H. Edelsbrunner, D. Letscher, A. Zomorodian, <em>Topological Persistence and Simplification</em>, Discrete &amp; Computational Geometry, 2002. Article fondateur de l'homologie persistante.</li>
         <li>H. Edelsbrunner &amp; J. Harer, <em>Computational Topology: An Introduction</em>, AMS, 2010. Référence textuelle complète.</li>
@@ -1476,7 +1249,6 @@ ax.legend(); plt.tight_layout()</code></pre>
         <li>Documentation : <a href="https://ripser.scikit-tda.org">Ripser.py</a>, <a href="https://persim.scikit-tda.org">Persim</a>, <a href="https://docs.scikit-tda.org">Scikit-TDA 1.1.1</a>, <a href="https://gudhi.inria.fr">GUDHI</a>.</li>
       </ol>
     </section>
-
   </main>
 
   <footer>
