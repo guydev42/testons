@@ -123,6 +123,21 @@
       background: var(--surface);
     }
 
+    /* ── AUTHOR CREDIT ── */
+    .author-credit {
+      margin-top: 2rem;
+      font-size: 1rem;
+      color: var(--accent2);
+      border-top: 1px solid var(--border);
+      padding-top: 2rem;
+      display: inline-block;
+    }
+    
+    .author-credit strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
     /* ── NAV ── */
     nav {
       position: sticky;
@@ -605,14 +620,17 @@
 
   <!-- HEADER -->
   <header id="top">
-    <p class="header-eyebrow">Analyse Topologique des Données · Tutoriel</p>
+    <p class="header-eyebrow">Analyse Topologique des Données · Tutoriel Approfondi</p>
     <h1>Comprendre les Données via les <em>Diagrammes de Persistance</em></h1>
     <p class="header-subtitle">Un guide complet de l'homologie persistante — des fondements mathématiques à l'implémentation Python</p>
     <div class="header-tags">
       <span class="tag">Topologie Algébrique</span>
       <span class="tag">Apprentissage Automatique</span>
       <span class="tag">Python · Ripser · Persim</span>
-      <span class="tag">Niveau ⭐⭐⭐</span>
+      <span class="tag">Niveau Avancé</span>
+    </div>
+    <div class="author-credit">
+      <strong>Patrick R. Nicolas</strong> · Adapté et enrichi par vos soins · © 2026
     </div>
   </header>
 
@@ -652,7 +670,7 @@
 
       <div class="callout success">
         <span class="callout-label">🎯 Objectifs de ce guide</span>
-        <p>Comprendre la construction mathématique des diagrammes de persistance, apprendre à les interpréter visuellement, maîtriser leurs variantes (images, paysages) et savoir les calculer en Python avec les bibliothèques <code>ripser</code>, <code>persim</code> et <code>scikit-tda</code>.</p>
+        <p>Comprendre la construction mathématique des diagrammes de persistance, apprendre à les interpréter visuellement, maîtriser leurs variantes (images, paysages) et savoir les calculer en Python avec les bibliothèques <code>ripser</code>, <code>persim</code> et <code>scikit-tda</code>. Ce tutoriel s'inspire largement des travaux de <strong>Patrick R. Nicolas</strong> sur l'apprentissage géométrique profond.</p>
       </div>
     </section>
 
@@ -1455,15 +1473,16 @@ ax.legend(); plt.tight_layout()</code></pre>
         <li>U.J. Kemme &amp; C.A. Agyingi, <em>Persistent Homology: A Pedagogical Introduction with Biological Applications</em>, arXiv:2505.06583, 2025.</li>
         <li>S. Oudot, <em>Persistence Theory: From Quiver Representations to Data Analysis</em>, AMS Mathematical Surveys 209, 2015. Traitement algébrique avancé.</li>
         <li>Documentation : <a href="https://ripser.scikit-tda.org">Ripser.py</a>, <a href="https://persim.scikit-tda.org">Persim</a>, <a href="https://docs.scikit-tda.org">Scikit-TDA 1.1.1</a>, <a href="https://gudhi.inria.fr">GUDHI</a>.</li>
-        <li>P.R. Nicolas, <em>Understanding Data Through Persistence Diagrams</em>, Hands-on Geometric Deep Learning (Substack), décembre 2025. Article source de ce guide.</li>
+        <li>P.R. Nicolas, <em>Understanding Data Through Persistence Diagrams</em>, Hands-on Geometric Deep Learning (Substack), décembre 2025. Article source de ce guide — un merci particulier à Patrick pour son inspiration et ses travaux fondamentaux sur l'apprentissage géométrique profond appliqué à la TDA.</li>
       </ol>
     </section>
 
   </main>
 
   <footer>
-    <p>Rédigé en français pour GitHub Pages · Basé sur les travaux de Patrick R. Nicolas et la littérature académique TDA</p>
-    <p style="margin-top: 0.5rem;">Edelsbrunner · Carlsson · Ghrist · Bubenik · Adams · Chazal</p>
+    <p>Rédigé en français pour GitHub Pages · Basé sur les travaux de <strong>Patrick R. Nicolas</strong> et la littérature académique TDA</p>
+    <p style="margin-top: 0.5rem;">Edelsbrunner · Carlsson · Ghrist · Bubenik · Adams · Chazal · Nicolas</p>
+    <p style="margin-top: 1rem; font-size: 0.8rem;">Version enrichie · Dernière mise à jour : juin 2026</p>
   </footer>
 
   <a href="#top" class="back-top" id="backTop" title="Haut de page">↑</a>
